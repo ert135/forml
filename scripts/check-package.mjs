@@ -37,12 +37,13 @@ import { access } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import * as forml from 'forml'
 import { useAutocomplete } from 'forml/autocomplete'
-import { useForm } from 'forml/form'
+import { useForm, useFormSession } from 'forml/form'
 import { decodeForm, FormlType, loadForm } from 'forml/schema'
 import * as types from 'forml/types'
 
 assert.equal(useAutocomplete, forml.useAutocomplete)
 assert.equal(useForm, forml.useForm)
+assert.equal(useFormSession, forml.useFormSession)
 assert.equal(decodeForm, forml.decodeForm)
 assert.equal(loadForm, forml.loadForm)
 assert.equal(FormlType, forml.FormlType)
@@ -60,7 +61,7 @@ await access(fileURLToPath(import.meta.resolve('forml/progress.css')))
     join(consumer, 'consumer.ts'),
     `import { createSubmission, defineQuestionComponents } from 'forml'
 import { useAutocomplete } from 'forml/autocomplete'
-import { useForm } from 'forml/form'
+import { useForm, useFormSession, type FormSession } from 'forml/form'
 import { FormlType } from 'forml/schema'
 import type { ChoiceOption, FormConfig, QuestionComponentEmits, QuestionComponentProps } from 'forml/types'
 import CustomQuestion from './CustomQuestion.vue'
@@ -73,6 +74,14 @@ const props: QuestionComponentProps = {
 }
 useAutocomplete(props, (value) => { const answer: QuestionComponentEmits['answer'] = [value] })
 const schema = { steps: [{ id: 'custom', title: 'Custom', questions: [{ ...props.question, type: 'custom' }] }] } satisfies FormConfig<'custom'>
+const session = useFormSession(() => schema, (): { status?: string } => ({}))
+const current: FormSession<{ status?: string }> = session.value
+current.status = 'Ready'
+current.state = { ...current.state, answers: { choice: 0 } }
+// @ts-expect-error Session fields retain their inferred types.
+current.status = 42
+// @ts-expect-error The schema comes from the input; it cannot be replaced on the session.
+current.schema = schema
 const controller = useForm({ schema, questionComponents: defineQuestionComponents({ custom: CustomQuestion }), submission: createSubmission({ transform: () => ({ count: 1 }) }) }, {
   onSubmit: (result) => { const count: unknown = result.request.count },
 })

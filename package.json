@@ -22,7 +22,7 @@
       "import": "./dist/autocomplete.js"
     },
     "./form": {
-      "types": "./dist/src/use-form.d.ts",
+      "types": "./dist/src/form.d.ts",
       "import": "./dist/form.js"
     },
     "./progress.css": "./dist/forml.css",

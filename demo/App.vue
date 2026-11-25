@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Effect } from 'effect'
 import {
-  createFormState,
   createSubmission,
   decodeForm,
   defineProgressComponent,
@@ -9,13 +8,11 @@ import {
   defineStepComponents,
   Forml,
   FormlActionType,
-  sameJson,
   type FormSchema,
-  type FormState,
   type FormStepChangeEffect,
   type QuestionChangeEffects,
 } from 'forml'
-import { computed, shallowReactive } from 'vue'
+import { useFormSession } from 'forml/form'
 
 import ContactStep from '../.storybook/demoComponents/ContactStep.vue'
 import RemovalsInput from '../.storybook/demoComponents/RemovalsInput.vue'
@@ -31,20 +28,10 @@ const stepComponents = defineStepComponents({ ContactStep })
 const questionComponents = defineQuestionComponents({ date: RemovalsInput, tel: RemovalsInput })
 const progressComponent = defineProgressComponent(RemovalsProgress)
 
-interface RemovalsSession {
-  readonly schema: FormSchema
-  state: FormState
-  postcodeStatus?: string
-}
-
-const session = computed<RemovalsSession>((previous) => {
-  const schema = props.schema ?? defaultSchema
-  if (previous && sameJson(previous.schema, schema)) return previous
-  return shallowReactive<RemovalsSession>({
-    schema,
-    state: createFormState(schema),
-  })
-})
+const session = useFormSession(
+  () => props.schema ?? defaultSchema,
+  (): { postcodeStatus?: string } => ({}),
+)
 
 const beforeStepChange: FormStepChangeEffect = (action, state) =>
   action.type === FormlActionType.Next ? Effect.log('Continue from step', state.stepId) : Effect.log('Back from step', state.stepId)

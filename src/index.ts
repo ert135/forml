@@ -12,6 +12,7 @@ export const FormlProgress = defineProgressComponent(Progress)
 
 export { useAutocomplete } from './autocomplete'
 export { useForm } from './use-form'
+export { useFormSession } from './use-form-session'
 
 export { defineProgressComponent, defineQuestionComponents, defineStepComponents } from './components/component-types'
 

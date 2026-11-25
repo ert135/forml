@@ -13,12 +13,12 @@ Use the package name in application code and custom components:
 ```ts
 import { defineQuestionComponents, Forml } from 'forml'
 import { useAutocomplete } from 'forml/autocomplete'
-import { useForm } from 'forml/form'
+import { useForm, useFormSession } from 'forml/form'
 import { decodeForm, FormlType } from 'forml/schema'
 import type { ChoiceOption, QuestionComponentEmits, QuestionComponentProps } from 'forml/types'
 ```
 
-The root `forml` entry still exports these APIs. `forml/types` contains type-only exports; `forml/schema` exposes schema decoding and `FormlType`; `forml/autocomplete` exposes the reusable autocomplete behavior; `forml/form` exposes `useForm`. Import styles with `import 'forml/style.css'`.
+The root `forml` entry still exports these APIs. `forml/types` contains type-only exports; `forml/schema` exposes schema decoding and `FormlType`; `forml/autocomplete` exposes the reusable autocomplete behavior; `forml/form` exposes `useForm` and `useFormSession`. Import styles with `import 'forml/style.css'`.
 
 All demo components and stories use these public paths. Local Vite and TypeScript configuration resolves them to the source for development, while the published package resolves them to the built JavaScript and declarations. Consumers do not need aliases or access to this repository's `src` folder.
 
@@ -121,6 +121,36 @@ Set `showWhen` directly on a question. Each key is a question ID and its array l
 Only visible questions are validated and included in submissions. Their earlier answers are restored when the questions become visible again. Rules can refer to questions in other steps. A hidden source question leaves its dependent questions hidden. For headless submissions, pass the schema to `createSubmission` to apply the same rules. Pass all steps when calling `validateAnswers` directly to resolve cross-step rules.
 
 ## Manage state
+
+Use `useFormSession` when a parent component needs access to the form state with `v-model:state`:
+
+```vue
+<script setup lang="ts">
+import { Forml } from 'forml'
+import { useFormSession } from 'forml/form'
+import type { FormSchema } from 'forml/types'
+
+const props = defineProps<{ schema: FormSchema }>()
+const session = useFormSession(() => props.schema)
+</script>
+
+<template>
+  <Forml :schema="session.schema" v-model:state="session.state" />
+</template>
+```
+
+The composable accepts a decoded schema, ref, or getter. Equivalent schemas preserve the same session, answers, errors, and current step. Replacing the schema with different content creates a fresh session. Treat schema objects as immutable and replace them to apply changes. The session is shallowly reactive: `state` is a replaceable snapshot, with transitions still calculated by the pure reducer. Session creation uses a computed value and no watchers.
+
+An optional initializer adds typed fields that reset with the schema. Keep this initializer free of side effects; return fresh data for each session:
+
+```ts
+const session = useFormSession(
+  () => props.schema ?? defaultSchema,
+  (): { postcodeStatus?: string } => ({}),
+)
+```
+
+Update these fields through `session.value.postcodeStatus` in script or `session.postcodeStatus` in a template. `schema` and `state` are reserved library fields. Async effects can capture `const current = session.value` before awaiting, so results for an old schema remain attached to its old session. See [the demo](demo/App.vue).
 
 `Forml.vue` delegates its behavior to `useForm`. To build your own renderer, call the same composable inside Vue setup:
 
