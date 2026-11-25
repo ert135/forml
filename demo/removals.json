@@ -1,0 +1,114 @@
+{
+  "steps": [
+    {
+      "id": "moving-from",
+      "title": "Property",
+      "description": "Tell us where you’re moving from and where you’re moving to.",
+      "questions": [
+        { "id": "currentPostcode", "type": "text", "label": "Moving from postcode", "placeholder": "e.g. CF11 9HB", "required": true, "effectOnChange": "checkCurrentPostcode" },
+        { "id": "currentAddressLine1", "type": "text", "label": "Moving from address line 1", "required": true },
+        { "id": "currentTown", "type": "text", "label": "Moving from town or city", "required": true },
+        {
+          "id": "currentType",
+          "type": "radio",
+          "label": "What is the property type?",
+          "required": true,
+          "options": [
+            { "label": "Flat", "value": "apartment-flat" },
+            { "label": "House", "value": "house" },
+            { "label": "Bungalow", "value": "bungalow" },
+            { "label": "Storage", "value": "storage" }
+          ]
+        },
+        {
+          "id": "currentStorage",
+          "type": "select",
+          "label": "Storage unit size (sq ft)",
+          "required": true,
+          "showWhen": { "currentType": ["storage"] },
+          "options": [
+            { "label": "25–50", "value": "1" },
+            { "label": "75–100", "value": "2" },
+            { "label": "125–150", "value": "3" },
+            { "label": "175–200", "value": "4" },
+            { "label": "250+", "value": "5" }
+          ]
+        },
+        {
+          "id": "currentBedrooms",
+          "type": "select",
+          "label": "How many bedrooms are there?",
+          "required": true,
+          "showWhen": { "currentType": ["apartment-flat", "house", "bungalow"] },
+          "options": [
+            { "label": "1", "value": "1" },
+            { "label": "2", "value": "2" },
+            { "label": "3", "value": "3" },
+            { "label": "4", "value": "4" },
+            { "label": "5+", "value": "5" }
+          ]
+        },
+        {
+          "id": "currentFloor",
+          "type": "select",
+          "label": "What floor is your flat on?",
+          "required": true,
+          "showWhen": { "currentType": ["apartment-flat"] },
+          "options": [
+            { "label": "Ground floor", "value": "0" },
+            { "label": "1", "value": "1" },
+            { "label": "2", "value": "2" },
+            { "label": "3", "value": "3" },
+            { "label": "4", "value": "4" },
+            { "label": "5+", "value": "5" }
+          ]
+        },
+        {
+          "id": "currentLift",
+          "type": "radio",
+          "label": "Is there a lift in your flat block?",
+          "required": true,
+          "showWhen": { "currentType": ["apartment-flat"], "currentFloor": ["1", "2", "3", "4", "5"] },
+          "options": [{ "label": "Yes", "value": true }, { "label": "No", "value": false }]
+        },
+        { "id": "movingToTownOnly", "type": "checkbox", "label": "I only know the town or city I’m moving to", "defaultValue": false },
+        { "id": "newPostcode", "type": "text", "label": "Moving to postcode", "required": true, "showWhen": { "movingToTownOnly": [false] } },
+        { "id": "newTownOnly", "type": "text", "label": "Moving to town or city", "required": true, "showWhen": { "movingToTownOnly": [true] } }
+      ]
+    },
+    {
+      "id": "additional-details",
+      "title": "Details",
+      "questions": [
+        { "id": "movingDate", "type": "date", "label": "Estimated moving date", "required": true },
+        {
+          "id": "flexibleMovingDate",
+          "type": "multiselect",
+          "label": "Date flexibility",
+          "options": [{ "label": "My moving date is fixed", "value": "not_flexible" }]
+        },
+        {
+          "id": "extraServices",
+          "type": "multiselect",
+          "label": "Additional services",
+          "options": [
+            { "label": "Packing service", "value": "packing" },
+            { "label": "Packing materials", "value": "boxes" },
+            { "label": "Furniture dismantling and reassembly", "value": "dismantling" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "contact-details",
+      "title": "Contact",
+      "component": "ContactStep",
+      "questions": [
+        { "id": "firstName", "type": "text", "label": "First name", "required": true },
+        { "id": "lastName", "type": "text", "label": "Last name", "required": true },
+        { "id": "email", "type": "email", "label": "Email address", "required": true },
+        { "id": "phone", "type": "tel", "label": "Phone number", "required": true }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+dist-demo/
+storybook-static/
+
+# Local credentials and agent settings
+.env
+.env.*
+!.env.example
+.aws/
+.codex/
+.agents/

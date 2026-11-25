@@ -1,0 +1,49 @@
+{
+  "steps": [
+    {
+      "id": "contact",
+      "title": "Contact details",
+      "component": "ContactStep",
+      "questions": [
+        { "id": "name", "type": "text", "label": "Full name", "required": true },
+        { "id": "email", "type": "email", "label": "Email address", "required": true }
+      ]
+    },
+    {
+      "id": "preferences",
+      "title": "Workshop preferences",
+      "questions": [
+        {
+          "id": "track",
+          "type": "select",
+          "label": "Workshop track",
+          "required": true,
+          "effectOnChange": "checkTrackAvailability",
+          "options": [
+            { "label": "Vue fundamentals", "value": "vue" },
+            { "label": "Working with Effect", "value": "effect" }
+          ]
+        },
+        {
+          "id": "topics",
+          "type": "multiselect",
+          "label": "Topics of interest",
+          "options": [
+            { "label": "Form validation", "value": "validation" },
+            { "label": "API integration", "value": "api" }
+          ]
+        },
+        {
+          "id": "online",
+          "type": "radio",
+          "label": "How will you attend?",
+          "required": true,
+          "options": [
+            { "label": "In person", "value": false },
+            { "label": "Online", "value": true }
+          ]
+        }
+      ]
+    }
+  ]
+}

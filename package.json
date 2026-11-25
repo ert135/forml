@@ -1,0 +1,42 @@
+{
+  "name": "forml",
+  "version": "0.1.0",
+  "description": "JSON-configured, multi-step forms for Vue and Effect",
+  "type": "module",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/forml.js"
+    },
+    "./progress.css": "./dist/forml.css"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "dev": "vite demo --config vite.config.ts --mode demo",
+    "check": "vue-tsc --noEmit",
+    "test": "vitest run",
+    "build": "node scripts/build-production.mjs && vue-tsc -p tsconfig.build.json",
+    "build:demo": "vite build demo --config vite.config.ts --mode demo --outDir ../dist-demo --emptyOutDir",
+    "storybook": "storybook dev -p 6006",
+    "build:storybook": "storybook build",
+    "prepack": "npm run build"
+  },
+  "peerDependencies": {
+    "effect": "^4.0.3",
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@storybook/vue3-vite": "10.6.8",
+    "@vitejs/plugin-vue": "6.0.5",
+    "effect": "4.0.3",
+    "jsdom": "29.1.1",
+    "storybook": "10.6.8",
+    "typescript": "5.9.3",
+    "vite": "7.3.1",
+    "vitest": "4.1.12",
+    "vue": "3.5.44",
+    "vue-tsc": "3.3.14",
+    "webpack": "5.112.2"
+  }
+}

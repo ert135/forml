@@ -1,0 +1,260 @@
+<p align="center">
+  <img src="./logo.png" alt="forml logo" width="180">
+</p>
+
+# forml
+
+`forml` renders Vue 3 forms from JSON. Each step contains questions, and each question type maps to a Vue component. A pure reducer manages answers, validation, and navigation. Effect 4 loads configurations and prepares and sends API requests.
+
+## Run the examples
+
+```sh
+npm install
+npm run dev
+npm run storybook
+```
+
+The removals example follows the Property, Details, and Contact steps in the demo and Storybook. Its JSON uses `showWhen` to show property and destination questions for the selected answers. Enter `CF11 9HB` in **Moving from postcode** to look up its district using the free Postcodes.io API. On submit, `send` runs the mock Google and Bing conversions, then saves a receipt locally. [Removals config](demo/removals.json) · [Demo](demo/App.vue) · [Tracking effects](demo/savingEffects.ts) · [Postcodes.io docs](https://postcodes.io/docs/postcode/lookup/)
+
+## Configure a form
+
+```json
+{
+  "steps": [
+    {
+      "id": "details",
+      "title": "Your details",
+      "component": "DetailsStep",
+      "questions": [
+        { "id": "email", "type": "email", "label": "Email", "required": true },
+        {
+          "id": "channel",
+          "type": "radio",
+          "label": "Contact preference",
+          "options": [
+            { "label": "Email", "value": "email" },
+            { "label": "Text message", "value": "sms" }
+          ],
+          "defaultValue": "email"
+        }
+      ]
+    }
+  ]
+}
+```
+
+Use `FormlType.Text`, `FormlType.Email`, `FormlType.Textarea`, `FormlType.Select`, `FormlType.Multiselect`, `FormlType.Radio`, and `FormlType.Checkbox` in TypeScript. `satisfies FormConfig` checks a TypeScript configuration against these choices. `FormConfig<'custom-type'>` also accepts the supplied custom type. JSON uses the enum’s string values. Give every step and question a unique ID within its respective set. Choice values can be strings, numbers, or booleans. Multiselect answers are arrays and default to `[]`. Unanswered questions are omitted unless they have a default. Steps and questions support a `description` and a `props` object for additional data your components need.
+
+### Conditional questions
+
+Set `showWhen` directly on a question. Each key is a question ID and its array lists matching values. Every key must match at least one value. When the source is a multiselect, any selected value in the array matches the rule.
+
+```json
+{
+  "id": "currentFloor",
+  "type": "select",
+  "label": "What floor is your flat on?",
+  "required": true,
+  "options": [{ "label": "Ground floor", "value": "0" }, { "label": "First floor", "value": "1" }],
+  "showWhen": { "currentType": ["apartment-flat"] }
+}
+```
+
+Only visible questions are validated and included in submissions. Their earlier answers are restored when the questions become visible again. Rules can refer to questions in other steps. A hidden source question leaves its dependent questions hidden. For headless submissions, pass the schema to `createSubmission` to apply the same rules. Pass all steps when calling `validateAnswers` directly to resolve cross-step rules.
+
+## Manage state
+
+`createFormState(form, initialAnswers?)` returns the initial step, answers, and field errors. `reduceForm(form, state, action)` returns the next state without mutating its arguments or doing I/O. Actions use `FormlActionType.Answer`, `FormlActionType.Back`, `FormlActionType.Next`, and `FormlActionType.Submit`. The submit action validates every step and moves to the first invalid step when needed.
+
+```vue
+<script setup lang="ts">
+import { Effect } from 'effect'
+import { shallowRef } from 'vue'
+import { createFormState, decodeForm, defineStepComponents, Forml } from 'forml'
+import type { FormAction, FormState } from 'forml'
+import DetailsStep from './DetailsStep.vue'
+import schema from './form.json'
+
+const form = Effect.runSync(decodeForm(schema))
+const state = shallowRef(createFormState(form))
+const stepComponents = defineStepComponents({ DetailsStep })
+
+function applyAction(_action: FormAction, next: FormState) {
+  state.value = next
+}
+</script>
+
+<template>
+  <Forml :schema="form" :state="state" :step-components="stepComponents" @action="applyAction" />
+</template>
+```
+
+The renderer calls the same reducer and emits `action` with the action and computed next state. Omit `:state` to let the renderer keep that state locally. Call the reducer directly to apply actions from outside the renderer.
+
+## Show form progress
+
+Pass `FormlProgress` to show a segmented indicator with the step titles and current position. Import its stylesheet when using the published package.
+
+```vue
+<script setup lang="ts">
+import { Forml, FormlProgress } from 'forml'
+import 'forml/progress.css'
+import schema from './form.json'
+</script>
+
+<template>
+  <Forml :schema="schema" :progress-component="FormlProgress" />
+</template>
+```
+
+Omit `progress-component` to use the default step count. Pass `:progress-component="null"` to hide progress entirely.
+
+For your own Vue component, declare `defineProps<ProgressComponentProps>()`. The component receives the ordered `steps` and zero-based `stepIndex`. Register the import with `defineProgressComponent` and pass it to `Forml`. The removals demo imports its progress component from Storybook. [Custom progress component](.storybook/demoComponents/RemovalsProgress.vue) · [Progress stories](.storybook/stories/RemovalsProgress.stories.ts) · [Demo wiring](demo/App.vue)
+
+```vue
+<script setup lang="ts">
+import { defineProgressComponent, Forml } from 'forml'
+import MyProgress from './MyProgress.vue'
+import schema from './form.json'
+
+const progressComponent = defineProgressComponent(MyProgress)
+</script>
+
+<template>
+  <Forml :schema="schema" :progress-component="progressComponent" />
+</template>
+```
+
+## Load configurations and A/B variants
+
+Use `decodeForm(value)` for parsed JSON you already have. Pass an Effect that reads from HTTP, storage, or another source to `loadForm`. It validates the result and returns a typed form definition. `FormLoadError` wraps source failures and `FormSchemaError` covers invalid configurations.
+
+```ts
+import { Effect } from 'effect'
+import { createFormState, loadForm } from 'forml'
+
+function loadRegistration(variant: 'standard' | 'short') {
+  return loadForm(Effect.tryPromise({
+    try: async (signal) => {
+      const response = await fetch(`/api/forms/registration?variant=${variant}`, { signal })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      return response.json() as Promise<unknown>
+    },
+    catch: (cause) => cause,
+  })).pipe(Effect.map((form) => ({ form, state: createFormState(form) })))
+}
+```
+
+Run the loader with your assigned variant and pass its form and state to `Forml`. The frontend registers component names that the variants can reference. Both variants can share a request transform when they use the same answer IDs and values.
+
+## Use components from your Storybook project
+
+Import the Vue component modules from the shared source or component package used by your Storybook. A Storybook story can render the same components on their own or through `Forml`. The library's built-in components are also available as named exports from `forml`.
+
+- **Step components** use `defineProps<StepComponentProps>()` and `defineSlots<StepComponentSlots>()`. They receive `step` and `answers`, and render `<slot />` where the questions should appear. Register them with `defineStepComponents({ DetailsStep })` and set the JSON step’s `component` to that name. The default step layout applies when the JSON omits `component`.
+- **Question components** use `defineProps<QuestionComponentProps>()` and `defineEmits<QuestionComponentEmits>()`. They receive `question`, `value`, `inputId`, `describedBy`, and `error`, and emit `answer` with a JSON-compatible value. You can narrow the emitted value with `QuestionComponentEmits<number>`, for example. Register built-in overrides with `defineQuestionComponents({ [FormlType.Radio]: MyRadio })` or register a custom key and use it as the question’s JSON `type`.
+
+The registration helpers check imported Vue components for compatible props and their slot or event contract.
+
+## Run an Effect on answer changes
+
+Give a question an `effectOnChange` name in the form JSON. Register that name on the renderer with `:change-effects="changeEffects"`.
+
+```json
+{
+  "id": "track",
+  "type": "select",
+  "label": "Workshop track",
+  "options": [{ "label": "Vue fundamentals", "value": "vue" }],
+  "effectOnChange": "logTrackSelection"
+}
+```
+
+```ts
+import { Effect } from 'effect'
+import type { QuestionChangeEffects } from 'forml'
+
+const changeEffects = {
+  logTrackSelection: ({ question, previousValue, value }) =>
+    Effect.log('Track selection changed', question.id, previousValue, value),
+} satisfies QuestionChangeEffects
+```
+
+The renderer dispatches the answer update before running the callback. The callback gets the question, previous value, new value, and a snapshot of the updated answers. A new value or a change that hides the question interrupts its running Effect. Schema changes and unmounting interrupt all active change effects. A failed callback emits `QuestionChangeError` through `@error`, and the answer stays in state. Change effects run independently of form validation and submission.
+
+## Prepare and send an API request
+
+Pass a submission pipeline to `Forml` with `:submission="submission"`. The pure `transform` receives the validated answers and returns the request model synchronously. `send` receives that model and returns an Effect for API calls and follow-up work.
+
+```ts
+import { Effect, Schema } from 'effect'
+import { createSubmission } from 'forml'
+
+const ContactRequest = Schema.Struct({
+  contact_email: Schema.NonEmptyString,
+  preferred_channel: Schema.Literals(['email', 'sms']),
+})
+
+const submission = createSubmission({
+  transform: (answers) => Schema.decodeUnknownSync(ContactRequest)({
+    contact_email: typeof answers.email === 'string' ? answers.email.trim() : answers.email,
+    preferred_channel: answers.channel,
+  }),
+  send: (request) => Effect.tryPromise({
+    try: async (signal) => {
+      const response = await fetch('/api/contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request),
+        signal,
+      })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      return { status: response.status }
+    },
+    catch: (cause) => cause,
+  }),
+})
+```
+
+When the form definition is available in TypeScript, pass it as `schema` to infer the answer keys and types. Preserve the literal question IDs and option values with `as const satisfies FormConfig`.
+
+```ts
+import { createSubmission, FormlType } from 'forml'
+import type { FormConfig } from 'forml'
+
+const schema = {
+  steps: [{
+    id: 'contact',
+    title: 'Contact details',
+    questions: [
+      { id: 'email', type: FormlType.Email, label: 'Email', required: true },
+      {
+        id: 'channel',
+        type: FormlType.Radio,
+        label: 'Preferred channel',
+        required: true,
+        options: [
+          { label: 'Email', value: 'email' },
+          { label: 'Text message', value: 'sms' },
+        ],
+      },
+    ],
+  }],
+} as const satisfies FormConfig
+
+const submission = createSubmission({
+  schema,
+  transform: (values) => ({
+    contact_email: values.email.trim(),
+    preferred_channel: values.channel,
+  }),
+})
+```
+
+Here `values.email` is a `string` and `values.channel` is `'email' | 'sms'`. Use `AnswersFromSchema<typeof schema>` to type a transform declared separately. The submission validates against the supplied schema before calling the transform. A definition loaded from HTTP has the general `FormAnswers` type because its question IDs become known at runtime.
+
+`@submit` receives `{ request, sent: true, response }` after sending succeeds. Omit `send` to receive `{ request, sent: false }`. Omit `submission` to receive the answers as the request.
+
+`@error` receives a tagged error with a message. `FormValidationError` includes the field errors. `RequestTransformError` and `RequestSendError` retain the original cause. `FormRuntimeError` covers unexpected failures from the submission pipeline.
+
+Run `npm test` for the framework tests and `npm run check` for source and type contract checks. Run `npm run build` to produce the minified ESM bundle and stylesheet in `dist/` with Webpack, along with TypeScript declarations.
