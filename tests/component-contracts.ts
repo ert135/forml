@@ -1,6 +1,6 @@
 import type { Component } from 'vue'
 
-import RemovalsInput from '../demo/RemovalsInput.vue'
+import RemovalsInput from '../.storybook/demoComponents/RemovalsInput.vue'
 import {
   AutocompleteQuestion,
   ChoiceQuestion,

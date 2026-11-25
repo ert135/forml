@@ -10,6 +10,9 @@ export { default as SelectQuestion } from '../.storybook/demoComponents/SelectQu
 export { default as TextQuestion } from '../.storybook/demoComponents/TextQuestion.vue'
 export const FormlProgress = defineProgressComponent(Progress)
 
+export { useAutocomplete } from './autocomplete'
+export type { AutocompleteProps, AutocompleteValue } from './autocomplete'
+
 export { defineProgressComponent, defineQuestionComponents, defineStepComponents } from './components/component-types'
 
 export type {

@@ -3,6 +3,7 @@ import { Effect } from 'effect'
 import { computed, shallowReactive } from 'vue'
 
 import ContactStep from '../.storybook/demoComponents/ContactStep.vue'
+import RemovalsInput from '../.storybook/demoComponents/RemovalsInput.vue'
 import RemovalsProgress from '../.storybook/demoComponents/RemovalsProgress.vue'
 import {
   createFormState,
@@ -22,7 +23,6 @@ import { sameJson } from '../src/json'
 import { questionValidators } from './questionValidators'
 import { lookupPostcode, transformRemovalsRequest, type RemovalsPayload } from './removals'
 import removals from './removals.json'
-import RemovalsInput from './RemovalsInput.vue'
 import { generateTrackingRequest, handleFailures, saveMatch, saveToLocalStorage, sendConversionValues } from './savingEffects'
 
 const props = defineProps<{ schema?: FormSchema }>()

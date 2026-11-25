@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 import { Effect } from 'effect'
 import { afterEach, expect, expectTypeOf, test, vi } from 'vitest'
-import { createApp, h, nextTick, shallowRef, type VNode } from 'vue'
+import { createApp, h, nextTick, reactive, shallowRef, type VNode } from 'vue'
 
 import {
+  AutocompleteQuestion,
   createFormState,
   createSubmission,
   decodeForm,
@@ -12,9 +13,13 @@ import {
   FormlType,
   FormSchemaError,
   FormValidationError,
+  useAutocomplete,
   validateAnswers,
   type AnswersFromSchema,
+  type AutocompleteProps,
+  type AutocompleteValue,
   type FormConfig,
+  type FormQuestion,
   type FormState,
 } from '../src'
 
@@ -237,6 +242,96 @@ test('preserves a selection when moving between form steps', async () => {
   root.querySelector<HTMLButtonElement>('button[type="button"]')!.click()
   await nextTick()
   expect(combo(root).value).toBe('Cardiff')
+})
+
+test('external answer changes discard a draft without emitting or reviving it on a later reset', async () => {
+  const value = shallowRef<AutocompleteValue>('cardiff')
+  const onAnswer = vi.fn((next: AutocompleteValue) => {
+    value.value = next
+  })
+  const root = mount(() => h(AutocompleteQuestion, { question: definition.steps[0].questions[0], inputId: 'external', value: value.value, onAnswer }))
+  await type(root, 'lon')
+  await key(root, 'ArrowDown')
+  expect(value.value).toBeNull()
+  expect(combo(root).value).toBe('lon')
+  onAnswer.mockClear()
+
+  value.value = false
+  await nextTick()
+  expect(combo(root).value).toBe('No preference')
+  expect(combo(root).getAttribute('aria-expanded')).toBe('false')
+  expect(combo(root).hasAttribute('aria-activedescendant')).toBe(false)
+  value.value = null
+  await nextTick()
+  expect(combo(root).value).toBe('')
+  expect(combo(root).getAttribute('aria-expanded')).toBe('false')
+  expect(onAnswer).not.toHaveBeenCalled()
+})
+
+test('replacing and restoring a question does not restore its old search', async () => {
+  const original = definition.steps[0].questions[0]
+  const question = shallowRef<FormQuestion>(original)
+  const onAnswer = vi.fn()
+  const root = mount(() => h(AutocompleteQuestion, { question: question.value, inputId: 'question-change', onAnswer }))
+  await type(root, 'lon')
+  await key(root, 'ArrowDown')
+  question.value = { ...original, id: 'other-city' }
+  await nextTick()
+  expect(combo(root).value).toBe('')
+  expect(combo(root).getAttribute('aria-expanded')).toBe('false')
+  question.value = original
+  await nextTick()
+  expect(combo(root).value).toBe('')
+  expect(combo(root).getAttribute('aria-expanded')).toBe('false')
+  expect(onAnswer).not.toHaveBeenCalled()
+})
+
+test('tracks a highlighted option by value when options change and drops removed highlights', async () => {
+  const question = reactive({ ...definition.steps[0].questions[0], options: [...definition.steps[0].questions[0].options] })
+  const onAnswer = vi.fn()
+  const root = mount(() => h(AutocompleteQuestion, { question, inputId: 'options-change', onAnswer }))
+  combo(root).focus()
+  await key(root, 'ArrowDown')
+  await key(root, 'ArrowDown')
+  expect(root.querySelector('[aria-selected="true"]')?.textContent).toContain('London')
+
+  question.options = [question.options![1], question.options![0]]
+  await nextTick()
+  expect(root.querySelector('[aria-selected="true"]')?.textContent).toContain('London')
+  expect(combo(root).getAttribute('aria-activedescendant')).toBe('options-change-option-0')
+  question.options = [question.options[1]]
+  await nextTick()
+  expect(combo(root).hasAttribute('aria-activedescendant')).toBe(false)
+  await key(root, 'Enter')
+  expect(onAnswer).not.toHaveBeenCalled()
+
+  question.options = [...definition.steps[0].questions[0].options]
+  await nextTick()
+  expect(combo(root).hasAttribute('aria-activedescendant')).toBe(false)
+  await key(root, 'ArrowDown')
+  await key(root, 'Enter')
+  expect(onAnswer).toHaveBeenCalledExactlyOnceWith('cardiff')
+})
+
+test('shares behavior through the public composable without the built-in component', () => {
+  const props = reactive({
+    question: definition.steps[0].questions[0],
+    inputId: 'custom-autocomplete',
+    value: null as AutocompleteValue,
+  }) satisfies AutocompleteProps
+  const onAnswer = vi.fn((value: AutocompleteValue) => {
+    props.value = value
+  })
+  const autocomplete = useAutocomplete(props, onAnswer)
+  autocomplete.show()
+  expect(autocomplete.matches.value).toHaveLength(5)
+  expect(autocomplete.open.value).toBe(true)
+  autocomplete.move(-1)
+  expect(autocomplete.activeId.value).toBe('custom-autocomplete-option-4')
+  autocomplete.keydown(new KeyboardEvent('keydown', { key: 'Enter' }))
+  expect(onAnswer).toHaveBeenCalledExactlyOnceWith('0')
+  expect(autocomplete.text.value).toBe('Zero (string)')
+  expect(autocomplete.open.value).toBe(false)
 })
 
 test('validates autocomplete option membership and infers the option value union', () => {

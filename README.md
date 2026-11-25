@@ -68,6 +68,21 @@ Import `forml/style.css` when using the published package to include the dropdow
 
 Focus the field to see the options, then type to filter their labels without case sensitivity. Click an option, or use the arrow keys and Enter, to select it. Escape and Tab close the list without accepting a highlighted option. Editing a selection clears the previous answer; unselected search text is discarded on blur. The clear button sets the answer to `null`. Only listed values pass validation, including numeric, boolean, and empty-string values. No matches displays an empty-results message. [Interactive stories](.storybook/stories/AutocompleteQuestion.stories.ts)
 
+Custom autocomplete components can share the library's behavior with `useAutocomplete`:
+
+```ts
+import { useAutocomplete, type AutocompleteValue, type QuestionComponentEmits, type QuestionComponentProps } from 'forml'
+
+const props = defineProps<QuestionComponentProps>()
+const emit = defineEmits<QuestionComponentEmits<AutocompleteValue>>()
+const { input, list, open, text, selected, matches, activeIndex, activeId, show, close, search, choose, clear, highlight, keydown } = useAutocomplete(
+  props,
+  (value) => emit('answer', value),
+)
+```
+
+Pass the reactive props object directly. Bind the returned refs and handlers in your own markup, as shown in [AutocompleteQuestion](.storybook/demoComponents/AutocompleteQuestion.vue). Filtering, selection, keyboard navigation, clearing, and accessibility IDs live in the library. State transitions and computed values are pure and use no watchers; answer emissions, focus, and scrolling happen only in interaction handlers. External answer or question changes discard obsolete drafts, and changing options cannot leave a removed option highlighted.
+
 ### Conditional questions
 
 Set `showWhen` directly on a question. Each key is a question ID and its array lists matching values. Every key must match at least one value. When the source is a multiselect, any selected value in the array matches the rule.
@@ -297,7 +312,7 @@ reduceForm(schema, state, action, questionValidators)
 createSubmission({ schema, questionValidators, transform: (answers) => answers })
 ```
 
-Pass the rules to each API you use; a schema-based submission does not inherit the renderer's rules. The demo registers `date` and `tel` in `demo/App.vue`, with rules in `demo/questionValidators.ts`. The **Custom question types** Storybook example shows custom props, inline errors, and submitted values.
+Pass the rules to each API you use; a schema-based submission does not inherit the renderer's rules. The demo registers `date` and `tel` in `demo/App.vue` using [RemovalsInput](.storybook/demoComponents/RemovalsInput.vue), with rules in `demo/questionValidators.ts`. The **Custom question types** Storybook example shows custom props, inline errors, and submitted values.
 
 ## Run an Effect on answer changes
 

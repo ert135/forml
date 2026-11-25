@@ -1,95 +1,13 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
-
+import { useAutocomplete, type AutocompleteValue } from '../../src/autocomplete'
 import type { QuestionComponentEmits, QuestionComponentProps } from '../../src/components/component-types'
-import type { ChoiceOption } from '../../src/schema'
 
 const props = defineProps<QuestionComponentProps>()
-const emit = defineEmits<QuestionComponentEmits<ChoiceOption['value'] | null>>()
-const input = ref<HTMLInputElement>()
-const list = ref<HTMLUListElement>()
-const open = ref(false)
-const query = ref<string>()
-const activeIndex = ref(-1)
-const selected = computed(() => props.question.options?.find((option) => option.value === props.value))
-const text = computed(() => query.value ?? selected.value?.label ?? '')
-const matches = computed(() => {
-  const search = query.value?.trim().toLocaleLowerCase() ?? ''
-  return (props.question.options ?? []).filter((option) => option.label.toLocaleLowerCase().includes(search))
-})
-const activeId = computed(() => (open.value && matches.value[activeIndex.value] ? `${props.inputId}-option-${activeIndex.value}` : undefined))
-
-function show() {
-  if (open.value) return
-  open.value = true
-  activeIndex.value = matches.value.findIndex((option) => option.value === props.value)
-}
-
-function close() {
-  open.value = false
-  query.value = undefined
-  activeIndex.value = -1
-}
-
-watch(
-  () => props.value,
-  (value) => {
-    // A null answer emitted while searching must not erase the user's query.
-    if (value != null) close()
-  },
+const emit = defineEmits<QuestionComponentEmits<AutocompleteValue>>()
+const { input, list, open, selected, text, matches, activeIndex, activeId, show, close, search, choose, clear, highlight, keydown } = useAutocomplete(
+  props,
+  (value) => emit('answer', value),
 )
-watch(() => props.question, close)
-watch(matches, () => {
-  activeIndex.value = -1
-})
-
-function search(event: Event) {
-  query.value = (event.target as HTMLInputElement).value
-  open.value = true
-  activeIndex.value = -1
-  // Unconfirmed text is never an answer, and must not leave a stale selection.
-  if (props.value != null) emit('answer', null)
-}
-
-function choose(option: ChoiceOption) {
-  close()
-  emit('answer', option.value)
-}
-
-function clear() {
-  query.value = ''
-  activeIndex.value = -1
-  open.value = true
-  emit('answer', null)
-  input.value?.focus()
-}
-
-function move(direction: 1 | -1) {
-  open.value = true
-  const count = matches.value.length
-  activeIndex.value =
-    count === 0 ? -1 : activeIndex.value < 0 ? (direction === 1 ? 0 : count - 1) : Math.max(0, Math.min(count - 1, activeIndex.value + direction))
-  void nextTick(() => {
-    list.value?.children[activeIndex.value]?.scrollIntoView?.({ block: 'nearest' })
-  })
-}
-
-function keydown(event: KeyboardEvent) {
-  if (event.isComposing) return
-  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-    event.preventDefault()
-    move(event.key === 'ArrowDown' ? 1 : -1)
-  } else if (event.key === 'Enter' && open.value) {
-    event.preventDefault()
-    const option = matches.value[activeIndex.value]
-    if (option) choose(option)
-  } else if (event.key === 'Escape' && open.value) {
-    event.preventDefault()
-    close()
-  } else if (event.key === 'Tab') {
-    close()
-  }
-}
 </script>
 
 <template>
@@ -140,7 +58,7 @@ function keydown(event: KeyboardEvent) {
           role="option"
           :aria-selected="index === activeIndex"
           @pointerdown.prevent
-          @pointermove="activeIndex = index"
+          @pointermove="highlight(option)"
           @click="choose(option)"
         >
           {{ option.label }}

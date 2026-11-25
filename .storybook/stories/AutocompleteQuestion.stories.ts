@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
-import { ref, watch } from 'vue'
+import { useArgs } from 'storybook/preview-api'
 
 import { AutocompleteQuestion, FormlType, type JsonValue } from '../../src'
 
@@ -24,26 +24,22 @@ const meta = {
       ],
     },
   },
-  render: (args) => ({
-    components: { AutocompleteQuestion },
-    setup() {
-      const value = ref<JsonValue | undefined>(args.value)
-      watch(
-        () => args.value,
-        (next) => {
-          value.value = next
-        },
-      )
-      return { args, value }
-    },
-    template: `
+  render: (args) => {
+    const [, updateArgs] = useArgs()
+    return {
+      components: { AutocompleteQuestion },
+      setup() {
+        return { args, onAnswer: (value: JsonValue) => updateArgs({ value }) }
+      },
+      template: `
       <div class="forml">
-        <AutocompleteQuestion v-bind="args" :value="value" @answer="value = $event" />
+        <AutocompleteQuestion v-bind="args" @answer="onAnswer" />
         <p v-if="args.error" :id="args.describedBy" class="forml-error">{{ args.error }}</p>
-        <p>Selected value: <code>{{ JSON.stringify(value) ?? 'None' }}</code></p>
+        <p>Selected value: <code>{{ JSON.stringify(args.value) ?? 'None' }}</code></p>
       </div>
     `,
-  }),
+    }
+  },
 } satisfies Meta<typeof AutocompleteQuestion>
 
 export default meta

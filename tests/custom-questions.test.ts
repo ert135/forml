@@ -3,8 +3,8 @@ import { Effect } from 'effect'
 import { afterEach, expect, test, vi } from 'vitest'
 import { createApp, h, nextTick, type VNode } from 'vue'
 
+import RemovalsInput from '../.storybook/demoComponents/RemovalsInput.vue'
 import { questionValidators as demoValidators } from '../demo/questionValidators'
-import RemovalsInput from '../demo/RemovalsInput.vue'
 import {
   createFormState,
   createSubmission,
