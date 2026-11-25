@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { FormlType } from '../../src/schema'
 import type { QuestionComponentEmits, QuestionComponentProps } from '../../src/components/component-types'
+import { FormlType } from '../../src/schema'
 
 defineProps<QuestionComponentProps>()
 const emit = defineEmits<QuestionComponentEmits<string>>()
@@ -34,5 +34,5 @@ function update(event: Event) {
     :aria-describedby="describedBy"
     :aria-invalid="error ? true : undefined"
     @input="update"
-  >
+  />
 </template>

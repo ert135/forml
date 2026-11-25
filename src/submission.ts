@@ -1,13 +1,12 @@
 import { Effect } from 'effect'
-import { RequestSendError, RequestTransformError } from './errors'
-import type { FormValidationError } from './errors'
+
+import { RequestSendError, RequestTransformError, type FormValidationError } from './errors'
 import type { AnswersFromSchema, FormAnswers, FormSchema } from './schema'
 import { validateAnswers } from './validation'
 import { questionVisibility } from './visibility'
 
 export type SubmissionResult<Request, Response = never> =
-  | { readonly request: Request; readonly sent: false }
-  | { readonly request: Request; readonly sent: true; readonly response: Response }
+  { readonly request: Request; readonly sent: false } | { readonly request: Request; readonly sent: true; readonly response: Response }
 
 type DeferredRequest = Effect.Effect<unknown, unknown, unknown> | PromiseLike<unknown>
 type SynchronousRequest<Request> = Request & Exclude<Request, DeferredRequest>
@@ -38,10 +37,11 @@ function transformRequest<Request>(makeRequest: () => Request): Effect.Effect<Re
       }
       return request
     },
-    catch: (cause) => new RequestTransformError({
-      cause,
-      message: 'Could not turn the answers into an API request.',
-    }),
+    catch: (cause) =>
+      new RequestTransformError({
+        cause,
+        message: 'Could not turn the answers into an API request.',
+      }),
   })
 }
 
@@ -65,9 +65,7 @@ function hasSchema<Definition extends FormSchema, Request, Response>(
 export function createSubmission<const Definition extends FormSchema, Request, Response = never>(
   options: SchemaSubmissionOptions<Definition, Request, Response>,
 ): FormSubmission<Request, Response, FormValidationError>
-export function createSubmission<Request, Response = never>(
-  options: SubmissionOptions<Request, Response>,
-): FormSubmission<Request, Response>
+export function createSubmission<Request, Response = never>(options: SubmissionOptions<Request, Response>): FormSubmission<Request, Response>
 export function createSubmission<const Definition extends FormSchema, Request, Response = never>(
   options: SubmissionOptions<Request, Response> | SchemaSubmissionOptions<Definition, Request, Response>,
 ): FormSubmission<Request, Response, FormValidationError> {
@@ -83,18 +81,20 @@ export function createSubmission<const Definition extends FormSchema, Request, R
     )
   }
 
-  return (answers) => Effect.gen(function* () {
-    const request = yield* prepareRequest(answers)
+  return (answers) =>
+    Effect.gen(function* () {
+      const request = yield* prepareRequest(answers)
 
-    if (!send) return { request, sent: false } as const
+      if (!send) return { request, sent: false } as const
 
-    const sendError = (cause: unknown) => new RequestSendError({
-      cause,
-      message: 'Could not submit the request. Try again.',
+      const sendError = (cause: unknown) =>
+        new RequestSendError({
+          cause,
+          message: 'Could not submit the request. Try again.',
+        })
+      const response = yield* Effect.try({ try: () => send(request), catch: sendError }).pipe(
+        Effect.flatMap((effect) => Effect.mapError(effect, sendError)),
+      )
+      return { request, sent: true, response } as const
     })
-    const response = yield* Effect.try({ try: () => send(request), catch: sendError }).pipe(
-      Effect.flatMap((effect) => Effect.mapError(effect, sendError)),
-    )
-    return { request, sent: true, response } as const
-  })
 }

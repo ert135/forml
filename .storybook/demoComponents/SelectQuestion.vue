@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { ChoiceOption } from '../../src/schema'
+
 import type { QuestionComponentEmits, QuestionComponentProps } from '../../src/components/component-types'
+import type { ChoiceOption } from '../../src/schema'
 
 const props = defineProps<QuestionComponentProps>()
 const emit = defineEmits<QuestionComponentEmits<ChoiceOption['value'] | null>>()

@@ -1,7 +1,7 @@
 import { Effect } from 'effect'
 import { expect, test } from 'vitest'
-import { createFormState, FormlActionType, reduceForm, validateAnswers } from '../src'
-import type { FormState, JsonValue } from '../src'
+
+import { createFormState, FormlActionType, reduceForm, validateAnswers, type FormState, type JsonValue } from '../src'
 import { form } from './fixtures'
 
 const next = { type: FormlActionType.Next } as const
@@ -14,10 +14,15 @@ function answer(state: FormState, questionId: string, value: JsonValue) {
 
 test('initializes defaults and preserves valid falsy initial answers', () => {
   expect(createFormState(form)).toEqual({
-    stepId: 'preferences', answers: { newsletter: false, topics: [], channel: false }, errors: {},
+    stepId: 'preferences',
+    answers: { newsletter: false, topics: [], channel: false },
+    errors: {},
   })
   expect(createFormState(form, { name: '', channel: 0, unrecognized: 'ignored' }).answers).toEqual({
-    name: '', newsletter: false, topics: [], channel: 0,
+    name: '',
+    newsletter: false,
+    topics: [],
+    channel: 0,
   })
 })
 
@@ -51,12 +56,19 @@ test('validates every step on submit and returns to the first invalid step', () 
   const result = reduceForm(form, contact, submit)
 
   expect(result.stepId).toBe('preferences')
-  expect(result.errors).toEqual({ name: 'Name is required.', email: 'Enter a valid email address.' })
+  expect(result.errors).toEqual({
+    name: 'Name is required.',
+    email: 'Enter a valid email address.',
+  })
 })
 
 test('checks all visibility rules, clears hidden errors, and restores retained answers', () => {
   const initial = createFormState(form, {
-    name: 'Ada', email: 'ada@example.com', newsletter: true, topics: ['work'], company: 'Example Ltd',
+    name: 'Ada',
+    email: 'ada@example.com',
+    newsletter: true,
+    topics: ['work'],
+    company: 'Example Ltd',
   })
   const blocked = reduceForm(form, initial, submit)
   expect(blocked.errors).toEqual({ reference: 'Reference is required.' })
@@ -82,7 +94,15 @@ test('validates answer types and option membership', () => {
     email: 'Enter a valid email address.',
     channel: 'Choose an available option.',
   })
-  expect(Effect.runSync(validateAnswers(form.steps, {
-    name: 'Ada', newsletter: false, topics: [], email: 'ada@example.com', channel: 0,
-  }))).toBeUndefined()
+  expect(
+    Effect.runSync(
+      validateAnswers(form.steps, {
+        name: 'Ada',
+        newsletter: false,
+        topics: [],
+        email: 'ada@example.com',
+        channel: 0,
+      }),
+    ),
+  ).toBeUndefined()
 })

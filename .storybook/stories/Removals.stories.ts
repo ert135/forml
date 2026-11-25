@@ -1,8 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { Effect } from 'effect'
-import { decodeForm } from '../../src'
+
 import Removals from '../../demo/App.vue'
 import removals from '../../demo/removals.json'
+import { decodeForm } from '../../src'
 
 const meta = {
   title: 'forml/Removals quote',
@@ -17,15 +18,19 @@ export const Standard: Story = {}
 
 export const Variant: Story = {
   args: {
-    schema: Effect.runSync(decodeForm({
-      steps: removals.steps.map((step) => step.id === 'contact-details'
-        ? {
-            ...step,
-            questions: step.questions.map((question) => question.id === 'phone'
-              ? { ...question, label: 'Phone number for your removal quotes' }
-              : question),
-          }
-        : step),
-    })),
+    schema: Effect.runSync(
+      decodeForm({
+        steps: removals.steps.map((step) =>
+          step.id === 'contact-details'
+            ? {
+                ...step,
+                questions: step.questions.map((question) =>
+                  question.id === 'phone' ? { ...question, label: 'Phone number for your removal quotes' } : question,
+                ),
+              }
+            : step,
+        ),
+      }),
+    ),
   },
 }

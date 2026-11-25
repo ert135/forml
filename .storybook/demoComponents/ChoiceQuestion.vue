@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { FormlType } from '../../src/schema'
 import { computed } from 'vue'
-import type { ChoiceOption, JsonValue } from '../../src/schema'
+
 import type { QuestionComponentEmits, QuestionComponentProps } from '../../src/components/component-types'
+import { FormlType, type ChoiceOption, type JsonValue } from '../../src/schema'
 
 const props = defineProps<QuestionComponentProps>()
 const emit = defineEmits<QuestionComponentEmits<JsonValue>>()
 const multiple = computed(() => props.question.type === FormlType.Multiselect)
-const selected = computed(() => Array.isArray(props.value) ? props.value : [])
+const selected = computed(() => (Array.isArray(props.value) ? props.value : []))
 
 function update(value: ChoiceOption['value'], event: Event) {
   if (!multiple.value) {
@@ -34,7 +34,7 @@ function update(value: ChoiceOption['value'], event: Event) {
         :aria-describedby="describedBy"
         :aria-invalid="error ? true : undefined"
         @change="update(option.value, $event)"
-      >
+      />
       {{ option.label }}
     </label>
   </fieldset>

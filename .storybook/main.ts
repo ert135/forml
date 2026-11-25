@@ -5,4 +5,4 @@ const config = {
   framework: '@storybook/vue3-vite',
 } satisfies StorybookConfig
 
-export default config;
+export default config

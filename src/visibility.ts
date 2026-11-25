@@ -25,10 +25,7 @@ export function showWhenError(questions: ReadonlyMap<string, FormQuestion>): str
   }
 }
 
-export function questionVisibility(
-  steps: readonly FormStep[],
-  answers: Readonly<FormAnswers>,
-): ReadonlyMap<string, boolean> {
+export function questionVisibility(steps: readonly FormStep[], answers: Readonly<FormAnswers>): ReadonlyMap<string, boolean> {
   const questions = new Map<string, FormQuestion>()
   for (const step of steps) {
     for (const question of step.questions) questions.set(question.id, question)
@@ -45,7 +42,7 @@ export function questionVisibility(
       const source = questions.get(id)
       if (!source || !Object.hasOwn(answers, id) || !isVisible(source)) return false
       const value = answers[id]
-      return matches.some((match) => Array.isArray(value) ? value.includes(match) : value === match)
+      return matches.some((match) => (Array.isArray(value) ? value.includes(match) : value === match))
     })
     visibility.set(question.id, visible)
     return visible

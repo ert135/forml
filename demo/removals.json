@@ -5,9 +5,26 @@
       "title": "Property",
       "description": "Tell us where you’re moving from and where you’re moving to.",
       "questions": [
-        { "id": "currentPostcode", "type": "text", "label": "Moving from postcode", "placeholder": "e.g. CF11 9HB", "required": true, "effectOnChange": "checkCurrentPostcode" },
-        { "id": "currentAddressLine1", "type": "text", "label": "Moving from address line 1", "required": true },
-        { "id": "currentTown", "type": "text", "label": "Moving from town or city", "required": true },
+        {
+          "id": "currentPostcode",
+          "type": "text",
+          "label": "Moving from postcode",
+          "placeholder": "e.g. CF11 9HB",
+          "required": true,
+          "effectOnChange": "checkCurrentPostcode"
+        },
+        {
+          "id": "currentAddressLine1",
+          "type": "text",
+          "label": "Moving from address line 1",
+          "required": true
+        },
+        {
+          "id": "currentTown",
+          "type": "text",
+          "label": "Moving from town or city",
+          "required": true
+        },
         {
           "id": "currentType",
           "type": "radio",
@@ -68,12 +85,35 @@
           "type": "radio",
           "label": "Is there a lift in your flat block?",
           "required": true,
-          "showWhen": { "currentType": ["apartment-flat"], "currentFloor": ["1", "2", "3", "4", "5"] },
-          "options": [{ "label": "Yes", "value": true }, { "label": "No", "value": false }]
+          "showWhen": {
+            "currentType": ["apartment-flat"],
+            "currentFloor": ["1", "2", "3", "4", "5"]
+          },
+          "options": [
+            { "label": "Yes", "value": true },
+            { "label": "No", "value": false }
+          ]
         },
-        { "id": "movingToTownOnly", "type": "checkbox", "label": "I only know the town or city I’m moving to", "defaultValue": false },
-        { "id": "newPostcode", "type": "text", "label": "Moving to postcode", "required": true, "showWhen": { "movingToTownOnly": [false] } },
-        { "id": "newTownOnly", "type": "text", "label": "Moving to town or city", "required": true, "showWhen": { "movingToTownOnly": [true] } }
+        {
+          "id": "movingToTownOnly",
+          "type": "checkbox",
+          "label": "I only know the town or city I’m moving to",
+          "defaultValue": false
+        },
+        {
+          "id": "newPostcode",
+          "type": "text",
+          "label": "Moving to postcode",
+          "required": true,
+          "showWhen": { "movingToTownOnly": [false] }
+        },
+        {
+          "id": "newTownOnly",
+          "type": "text",
+          "label": "Moving to town or city",
+          "required": true,
+          "showWhen": { "movingToTownOnly": [true] }
+        }
       ]
     },
     {

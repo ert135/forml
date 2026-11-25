@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { Effect } from 'effect'
-import { decodeForm } from '../../src'
+
 import removals from '../../demo/removals.json'
+import { decodeForm } from '../../src'
 import RemovalsProgress from '../demoComponents/RemovalsProgress.vue'
 
 const { steps } = Effect.runSync(decodeForm(removals))

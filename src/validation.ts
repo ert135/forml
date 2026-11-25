@@ -1,13 +1,12 @@
 import { Effect } from 'effect'
+
 import { FormValidationError } from './errors'
-import { FormlType } from './schema'
-import type { FormAnswers, FormQuestion, FormStep, JsonValue } from './schema'
+import { FormlType, type FormAnswers, type FormQuestion, type FormStep, type JsonValue } from './schema'
 import { questionVisibility } from './visibility'
 
 function questionError(question: FormQuestion, value: JsonValue | undefined): string | undefined {
   const singleChoice = question.type === FormlType.Select || question.type === FormlType.Radio
-  const empty = value == null || (!singleChoice && typeof value === 'string' && !value.trim()) ||
-    (Array.isArray(value) && value.length === 0)
+  const empty = value == null || (!singleChoice && typeof value === 'string' && !value.trim()) || (Array.isArray(value) && value.length === 0)
 
   if (question.required && (empty || (question.type === FormlType.Checkbox && value === false))) {
     return `${question.label} is required.`
@@ -35,11 +34,7 @@ function questionError(question: FormQuestion, value: JsonValue | undefined): st
   }
 }
 
-export function answerErrors(
-  steps: readonly FormStep[],
-  answers: Readonly<FormAnswers>,
-  stepId?: string,
-): Readonly<Record<string, string>> {
+export function answerErrors(steps: readonly FormStep[], answers: Readonly<FormAnswers>, stepId?: string): Readonly<Record<string, string>> {
   const fields: Record<string, string> = Object.create(null)
   const visibility = questionVisibility(steps, answers)
 
@@ -61,10 +56,7 @@ export function validationError(fields: Readonly<Record<string, string>>): FormV
   }
 }
 
-export function validateAnswers(
-  steps: readonly FormStep[],
-  answers: Readonly<FormAnswers>,
-): Effect.Effect<void, FormValidationError> {
+export function validateAnswers(steps: readonly FormStep[], answers: Readonly<FormAnswers>): Effect.Effect<void, FormValidationError> {
   return Effect.suspend(() => {
     const error = validationError(answerErrors(steps, answers))
     return error ? Effect.fail(error) : Effect.void

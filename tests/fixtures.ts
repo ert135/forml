@@ -1,5 +1,4 @@
-import { FormlType } from '../src'
-import type { FormConfig } from '../src'
+import { FormlType, type FormConfig } from '../src'
 
 export const form = {
   steps: [
@@ -13,7 +12,10 @@ export const form = {
           id: 'topics',
           type: FormlType.Multiselect,
           label: 'Topics',
-          options: [{ label: 'Work', value: 'work' }, { label: 'Hobbies', value: 'hobbies' }],
+          options: [
+            { label: 'Work', value: 'work' },
+            { label: 'Hobbies', value: 'hobbies' },
+          ],
         },
       ],
     },
@@ -28,7 +30,10 @@ export const form = {
           label: 'Channel',
           required: true,
           defaultValue: false,
-          options: [{ label: 'Email', value: false }, { label: 'Phone', value: 0 }],
+          options: [
+            { label: 'Email', value: false },
+            { label: 'Phone', value: 0 },
+          ],
         },
         {
           id: 'company',

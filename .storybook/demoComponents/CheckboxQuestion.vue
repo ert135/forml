@@ -20,7 +20,7 @@ function update(event: Event) {
       :aria-describedby="describedBy"
       :aria-invalid="error ? true : undefined"
       @change="update"
-    >
+    />
     {{ question.label }}
   </label>
 </template>

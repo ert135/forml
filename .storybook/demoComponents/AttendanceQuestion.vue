@@ -18,7 +18,7 @@ const emit = defineEmits<QuestionComponentEmits<ChoiceOption['value']>>()
         :aria-describedby="describedBy"
         :aria-invalid="error ? true : undefined"
         @change="emit('answer', option.value)"
-      >
+      />
       {{ option.label }}
     </label>
   </fieldset>

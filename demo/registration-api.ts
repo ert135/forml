@@ -38,7 +38,11 @@ export interface RegistrationResponse {
     readonly confirmation: 'queued'
     readonly analytics:
       | { readonly status: 'recorded'; readonly event: RegistrationAnalyticsEvent }
-      | { readonly status: 'failed'; readonly event: RegistrationAnalyticsEvent; readonly message: string }
+      | {
+          readonly status: 'failed'
+          readonly event: RegistrationAnalyticsEvent
+          readonly message: string
+        }
   }
 }
 
@@ -80,24 +84,37 @@ export function createMockRegistrationApi(scenario: MockScenario, report: (call:
   }
 
   return {
-    getTrack: (trackId: string) => call(`GET /tracks/${encodeURIComponent(trackId)}`, 140, () =>
-      Effect.succeed({ name: trackNames.get(trackId) ?? trackId }),
-    ),
-    getAvailability: (trackId: string) => call(`GET /tracks/${encodeURIComponent(trackId)}/availability`, 260, (attempt) =>
-      scenario === MockScenario.RetryAvailability && attempt === 1
-        ? Effect.fail(new MockHttpError({ status: 503, message: 'The availability service is temporarily unavailable.' }))
-        : Effect.succeed({ seats: scenario === MockScenario.SoldOut ? 0 : 6 }),
-    ),
-    createRegistration: (request: RegistrationPayload) => call('POST /registrations', 180, () =>
-      Effect.succeed({ id: `demo-${request.trackId}-001` }), 201,
-    ),
-    queueConfirmation: (registrationId: string) => call(`POST /registrations/${encodeURIComponent(registrationId)}/confirmation`, 160, () =>
-      Effect.succeed('queued' as const), 202,
-    ),
-    recordAnalytics: (event: RegistrationAnalyticsEvent) => call('POST /mock/google-analytics/collect', 130, () =>
-      scenario === MockScenario.AnalyticsUnavailable
-        ? Effect.fail(new MockHttpError({ status: 503, message: 'The mock analytics service is temporarily unavailable.' }))
-        : Effect.succeed(event), 204,
-    ),
+    getTrack: (trackId: string) =>
+      call(`GET /tracks/${encodeURIComponent(trackId)}`, 140, () => Effect.succeed({ name: trackNames.get(trackId) ?? trackId })),
+    getAvailability: (trackId: string) =>
+      call(`GET /tracks/${encodeURIComponent(trackId)}/availability`, 260, (attempt) =>
+        scenario === MockScenario.RetryAvailability && attempt === 1
+          ? Effect.fail(
+              new MockHttpError({
+                status: 503,
+                message: 'The availability service is temporarily unavailable.',
+              }),
+            )
+          : Effect.succeed({ seats: scenario === MockScenario.SoldOut ? 0 : 6 }),
+      ),
+    createRegistration: (request: RegistrationPayload) =>
+      call('POST /registrations', 180, () => Effect.succeed({ id: `demo-${request.trackId}-001` }), 201),
+    queueConfirmation: (registrationId: string) =>
+      call(`POST /registrations/${encodeURIComponent(registrationId)}/confirmation`, 160, () => Effect.succeed('queued' as const), 202),
+    recordAnalytics: (event: RegistrationAnalyticsEvent) =>
+      call(
+        'POST /mock/google-analytics/collect',
+        130,
+        () =>
+          scenario === MockScenario.AnalyticsUnavailable
+            ? Effect.fail(
+                new MockHttpError({
+                  status: 503,
+                  message: 'The mock analytics service is temporarily unavailable.',
+                }),
+              )
+            : Effect.succeed(event),
+        204,
+      ),
   }
 }

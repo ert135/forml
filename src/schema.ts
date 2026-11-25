@@ -1,4 +1,5 @@
 import { Effect, Schema } from 'effect'
+
 import { FormLoadError, FormSchemaError } from './errors'
 import { showWhenError } from './visibility'
 
@@ -45,7 +46,9 @@ const Step = Schema.Struct({
 
 const Definition = Schema.Struct({ steps: Schema.NonEmptyArray(Step) })
 
-export type FormQuestion<Type extends string = string> = Omit<typeof Question.Type, 'type'> & { readonly type: Type }
+export type FormQuestion<Type extends string = string> = Omit<typeof Question.Type, 'type'> & {
+  readonly type: Type
+}
 export type FormStep<Type extends string = string> = Omit<typeof Step.Type, 'questions'> & {
   readonly questions: readonly FormQuestion<Type>[]
 }
@@ -60,24 +63,32 @@ export type ShowWhen = typeof ShowWhen.Type
 
 type Questions<Definition extends FormSchema> = Definition['steps'][number]['questions'][number]
 
-type ChoiceValue<Question extends FormQuestion> =
-  Question extends { readonly options: readonly (infer Option extends ChoiceOption)[] }
-    ? Option['value']
-    : ChoiceOption['value']
+type ChoiceValue<Question extends FormQuestion> = Question extends {
+  readonly options: readonly (infer Option extends ChoiceOption)[]
+}
+  ? Option['value']
+  : ChoiceOption['value']
 
-type AnswerValue<Question extends FormQuestion> =
-  Question['type'] extends `${FormlType.Text | FormlType.Email | FormlType.Textarea}` ? string
-    : Question['type'] extends `${FormlType.Checkbox}` ? boolean
-      : Question['type'] extends `${FormlType.Select | FormlType.Radio}` ? ChoiceValue<Question>
-        : Question['type'] extends `${FormlType.Multiselect}` ? readonly ChoiceValue<Question>[]
-          : JsonValue
+type AnswerValue<Question extends FormQuestion> = Question['type'] extends `${FormlType.Text | FormlType.Email | FormlType.Textarea}`
+  ? string
+  : Question['type'] extends `${FormlType.Checkbox}`
+    ? boolean
+    : Question['type'] extends `${FormlType.Select | FormlType.Radio}`
+      ? ChoiceValue<Question>
+      : Question['type'] extends `${FormlType.Multiselect}`
+        ? readonly ChoiceValue<Question>[]
+        : JsonValue
 
 type TupleIndices<Items extends readonly unknown[]> = Extract<keyof Items, `${number}`>
-type IsUnion<Value, Whole = Value> = Value extends unknown ? [Whole] extends [Value] ? false : true : never
+type IsUnion<Value, Whole = Value> = Value extends unknown ? ([Whole] extends [Value] ? false : true) : never
 
 // An always-visible question with a single ID establishes a required answer key.
 type RequiredId<Question> = [Question] extends [{ readonly required: true; readonly id: infer Id extends string; readonly showWhen?: undefined }]
-  ? {} extends Record<Id, never> ? never : IsUnion<Id> extends false ? Id : never
+  ? {} extends Record<Id, never>
+    ? never
+    : IsUnion<Id> extends false
+      ? Id
+      : never
   : never
 
 type RequiredQuestionIds<Items extends readonly FormQuestion[]> = {
@@ -122,18 +133,24 @@ export function decodeForm(input: unknown): Effect.Effect<FormSchema, FormSchema
           questions.set(question.id, question)
 
           if (choiceTypes.has(question.type) && !question.options?.length) {
-            return Effect.fail(new FormSchemaError({ message: `Question "${question.id}" needs at least one option.` }))
+            return Effect.fail(
+              new FormSchemaError({
+                message: `Question "${question.id}" needs at least one option.`,
+              }),
+            )
           }
           if (question.options && new Set(question.options.map(({ value }) => value)).size !== question.options.length) {
-            return Effect.fail(new FormSchemaError({ message: `Question "${question.id}" has duplicate option values.` }))
+            return Effect.fail(
+              new FormSchemaError({
+                message: `Question "${question.id}" has duplicate option values.`,
+              }),
+            )
           }
         }
       }
 
       const visibilityError = showWhenError(questions)
-      return visibilityError
-        ? Effect.fail(new FormSchemaError({ message: visibilityError }))
-        : Effect.succeed(form)
+      return visibilityError ? Effect.fail(new FormSchemaError({ message: visibilityError })) : Effect.succeed(form)
     }),
   )
 }

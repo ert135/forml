@@ -1,6 +1,7 @@
 import { Effect } from 'effect'
 import { expect, test } from 'vitest'
-import { decodeForm, FormlType, FormLoadError, FormSchemaError, loadForm } from '../src'
+
+import { decodeForm, FormLoadError, FormlType, FormSchemaError, loadForm } from '../src'
 import { form } from './fixtures'
 
 test('decodes a JSON definition with cross-step visibility rules and typed choices', () => {
@@ -13,17 +14,34 @@ test.each([
   { input: { steps: [] }, message: /steps/ },
   { input: { steps: [form.steps[0], form.steps[0]] }, message: /Duplicate step ID/ },
   {
-    input: { steps: [form.steps[0], { ...form.steps[1], questions: [form.steps[0].questions[0]] }] },
+    input: {
+      steps: [form.steps[0], { ...form.steps[1], questions: [form.steps[0].questions[0]] }],
+    },
     message: /Duplicate question ID/,
   },
   {
-    input: { steps: [{ ...form.steps[0], questions: [{ id: 'choice', type: FormlType.Radio, label: 'Choice' }] }] },
+    input: {
+      steps: [{ ...form.steps[0], questions: [{ id: 'choice', type: FormlType.Radio, label: 'Choice' }] }],
+    },
     message: /needs at least one option/,
   },
   {
-    input: { steps: [{ ...form.steps[0], questions: [{ ...form.steps[0].questions[2], options: [
-      { label: 'First', value: 'work' }, { label: 'Second', value: 'work' },
-    ] }] }] },
+    input: {
+      steps: [
+        {
+          ...form.steps[0],
+          questions: [
+            {
+              ...form.steps[0].questions[2],
+              options: [
+                { label: 'First', value: 'work' },
+                { label: 'Second', value: 'work' },
+              ],
+            },
+          ],
+        },
+      ],
+    },
     message: /has duplicate option values/,
   },
   {
@@ -31,10 +49,17 @@ test.each([
     message: /unknown question "newsletter"/,
   },
   {
-    input: { steps: [{ ...form.steps[0], questions: [
-      { ...form.steps[0].questions[0], showWhen: { newsletter: [true] } },
-      { ...form.steps[0].questions[1], showWhen: { name: ['Ada'] } },
-    ] }] },
+    input: {
+      steps: [
+        {
+          ...form.steps[0],
+          questions: [
+            { ...form.steps[0].questions[0], showWhen: { newsletter: [true] } },
+            { ...form.steps[0].questions[1], showWhen: { name: ['Ada'] } },
+          ],
+        },
+      ],
+    },
     message: /circular showWhen rule/,
   },
 ])('rejects invalid definitions matching $message', ({ input, message }) => {

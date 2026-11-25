@@ -10,5 +10,21 @@
     "types": ["vite/client"],
     "lib": ["ES2022", "DOM", "DOM.Iterable"]
   },
-  "include": ["src/**/*.ts", "src/**/*.vue", "demo/**/*.ts", "demo/**/*.vue", ".storybook/**/*.ts", "tests/**/*.ts", "vite.config.ts", ".storybook/demoComponents/AttendanceQuestion.vue", ".storybook/demoComponents/ContactStep.vue", ".storybook/demoComponents/CheckboxQuestion.vue", ".storybook/demoComponents/ChoiceQuestion.vue", ".storybook/demoComponents/SelectQuestion.vue", ".storybook/demoComponents/TextQuestion.vue", ".storybook/demoComponents/DefaultStep.vue", ".storybook/demoComponents/RemovalsProgress.vue"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "demo/**/*.ts",
+    "demo/**/*.vue",
+    ".storybook/**/*.ts",
+    "tests/**/*.ts",
+    "vite.config.ts",
+    ".storybook/demoComponents/AttendanceQuestion.vue",
+    ".storybook/demoComponents/ContactStep.vue",
+    ".storybook/demoComponents/CheckboxQuestion.vue",
+    ".storybook/demoComponents/ChoiceQuestion.vue",
+    ".storybook/demoComponents/SelectQuestion.vue",
+    ".storybook/demoComponents/TextQuestion.vue",
+    ".storybook/demoComponents/DefaultStep.vue",
+    ".storybook/demoComponents/RemovalsProgress.vue"
+  ]
 }

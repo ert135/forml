@@ -55,7 +55,10 @@ Set `showWhen` directly on a question. Each key is a question ID and its array l
   "type": "select",
   "label": "What floor is your flat on?",
   "required": true,
-  "options": [{ "label": "Ground floor", "value": "0" }, { "label": "First floor", "value": "1" }],
+  "options": [
+    { "label": "Ground floor", "value": "0" },
+    { "label": "First floor", "value": "1" }
+  ],
   "showWhen": { "currentType": ["apartment-flat"] }
 }
 ```
@@ -69,8 +72,9 @@ Only visible questions are validated and included in submissions. Their earlier 
 ```vue
 <script setup lang="ts">
 import { Effect } from 'effect'
-import { shallowRef } from 'vue'
 import { createFormState, decodeForm, defineStepComponents, Forml } from 'forml'
+import { shallowRef } from 'vue'
+
 import DetailsStep from './DetailsStep.vue'
 import schema from './form.json'
 
@@ -92,8 +96,8 @@ Pass `beforeStepChange` to describe work that must succeed before Continue (`Nex
 
 ```ts
 import { Effect } from 'effect'
-import { FormlActionType } from 'forml'
-import type { FormStepChangeEffect } from 'forml'
+import { FormlActionType, type FormStepChangeEffect } from 'forml'
+
 import { saveDraft, trackStep } from './effects'
 
 const beforeStepChange: FormStepChangeEffect = (action, state) =>
@@ -121,7 +125,9 @@ Pass `FormlProgress` to show a segmented indicator with the step titles and curr
 ```vue
 <script setup lang="ts">
 import { Forml, FormlProgress } from 'forml'
+
 import 'forml/progress.css'
+
 import schema from './form.json'
 </script>
 
@@ -137,8 +143,9 @@ For your own Vue component, declare `defineProps<ProgressComponentProps>()`. The
 ```vue
 <script setup lang="ts">
 import { defineProgressComponent, Forml } from 'forml'
-import MyProgress from './MyProgress.vue'
+
 import schema from './form.json'
+import MyProgress from './MyProgress.vue'
 
 const progressComponent = defineProgressComponent(MyProgress)
 </script>
@@ -157,14 +164,16 @@ import { Effect } from 'effect'
 import { createFormState, loadForm } from 'forml'
 
 function loadRegistration(variant: 'standard' | 'short') {
-  return loadForm(Effect.tryPromise({
-    try: async (signal) => {
-      const response = await fetch(`/api/forms/registration?variant=${variant}`, { signal })
-      if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      return response.json() as Promise<unknown>
-    },
-    catch: (cause) => cause,
-  })).pipe(Effect.map((form) => ({ form, state: createFormState(form) })))
+  return loadForm(
+    Effect.tryPromise({
+      try: async (signal) => {
+        const response = await fetch(`/api/forms/registration?variant=${variant}`, { signal })
+        if (!response.ok) throw new Error(`HTTP ${response.status}`)
+        return response.json() as Promise<unknown>
+      },
+      catch: (cause) => cause,
+    }),
+  ).pipe(Effect.map((form) => ({ form, state: createFormState(form) })))
 }
 ```
 
@@ -198,8 +207,7 @@ import { Effect } from 'effect'
 import type { QuestionChangeEffects } from 'forml'
 
 const changeEffects = {
-  logTrackSelection: ({ question, previousValue, value }) =>
-    Effect.log('Track selection changed', question.id, previousValue, value),
+  logTrackSelection: ({ question, previousValue, value }) => Effect.log('Track selection changed', question.id, previousValue, value),
 } satisfies QuestionChangeEffects
 ```
 
@@ -219,50 +227,53 @@ const ContactRequest = Schema.Struct({
 })
 
 const submission = createSubmission({
-  transform: (answers) => Schema.decodeUnknownSync(ContactRequest)({
-    contact_email: typeof answers.email === 'string' ? answers.email.trim() : answers.email,
-    preferred_channel: answers.channel,
-  }),
-  send: (request) => Effect.tryPromise({
-    try: async (signal) => {
-      const response = await fetch('/api/contacts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(request),
-        signal,
-      })
-      if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      return { status: response.status }
-    },
-    catch: (cause) => cause,
-  }),
+  transform: (answers) =>
+    Schema.decodeUnknownSync(ContactRequest)({
+      contact_email: typeof answers.email === 'string' ? answers.email.trim() : answers.email,
+      preferred_channel: answers.channel,
+    }),
+  send: (request) =>
+    Effect.tryPromise({
+      try: async (signal) => {
+        const response = await fetch('/api/contacts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(request),
+          signal,
+        })
+        if (!response.ok) throw new Error(`HTTP ${response.status}`)
+        return { status: response.status }
+      },
+      catch: (cause) => cause,
+    }),
 })
 ```
 
 When the form definition is available in TypeScript, pass it as `schema` to infer the answer keys and types. Preserve the literal question IDs and option values with `as const satisfies FormConfig`.
 
 ```ts
-import { createSubmission, FormlType } from 'forml'
-import type { FormConfig } from 'forml'
+import { createSubmission, FormlType, type FormConfig } from 'forml'
 
 const schema = {
-  steps: [{
-    id: 'contact',
-    title: 'Contact details',
-    questions: [
-      { id: 'email', type: FormlType.Email, label: 'Email', required: true },
-      {
-        id: 'channel',
-        type: FormlType.Radio,
-        label: 'Preferred channel',
-        required: true,
-        options: [
-          { label: 'Email', value: 'email' },
-          { label: 'Text message', value: 'sms' },
-        ],
-      },
-    ],
-  }],
+  steps: [
+    {
+      id: 'contact',
+      title: 'Contact details',
+      questions: [
+        { id: 'email', type: FormlType.Email, label: 'Email', required: true },
+        {
+          id: 'channel',
+          type: FormlType.Radio,
+          label: 'Preferred channel',
+          required: true,
+          options: [
+            { label: 'Email', value: 'email' },
+            { label: 'Text message', value: 'sms' },
+          ],
+        },
+      ],
+    },
+  ],
 } as const satisfies FormConfig
 
 const submission = createSubmission({
@@ -279,5 +290,7 @@ Here `values.email` is a `string` and `values.channel` is `'email' | 'sms'`. Use
 `@submit` receives `{ request, sent: true, response }` after sending succeeds. Omit `send` to receive `{ request, sent: false }`. Omit `submission` to receive the answers as the request.
 
 `@error` receives a tagged error with a message. `FormValidationError` includes the field errors. `RequestTransformError` and `RequestSendError` retain the original cause. `FormRuntimeError` covers unexpected failures from the submission pipeline.
+
+Run `npm run format` to format the project and sort imports with Prettier. Run `npm run format:check` to check formatting without changing files. Imports are grouped as Node built-ins, external packages, and local modules; side-effect imports retain their ordering.
 
 Run `npm test` for the framework tests and `npm run check` for source and type contract checks. Run `npm run build` to produce the minified ESM bundle and stylesheet in `dist/` with Webpack, along with TypeScript declarations.

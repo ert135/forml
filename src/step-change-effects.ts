@@ -1,4 +1,5 @@
 import type { Effect } from 'effect'
+
 import type { FormAction, FormlActionType, FormState } from './state'
 
 /** Builds an Effect before Continue or Back moves to another step. */

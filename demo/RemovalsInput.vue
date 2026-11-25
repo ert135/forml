@@ -21,5 +21,5 @@ function update(event: Event) {
     :aria-describedby="describedBy"
     :aria-invalid="error ? true : undefined"
     @input="update"
-  >
+  />
 </template>

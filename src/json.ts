@@ -7,7 +7,5 @@ export function sameJson(left: JsonValue | undefined, right: JsonValue | undefin
 
   const entries: [string, JsonValue][] = Object.entries(left)
   const otherEntries = new Map<string, JsonValue>(Object.entries(right))
-  return entries.length === otherEntries.size && entries.every(([key, value]) =>
-    otherEntries.has(key) && sameJson(value, otherEntries.get(key)),
-  )
+  return entries.length === otherEntries.size && entries.every(([key, value]) => otherEntries.has(key) && sameJson(value, otherEntries.get(key)))
 }

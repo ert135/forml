@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
+
 import { FormlType } from '../../src'
 import AttendanceQuestion from '../demoComponents/AttendanceQuestion.vue'
 

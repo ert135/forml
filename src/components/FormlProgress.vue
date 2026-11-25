@@ -6,9 +6,7 @@ defineProps<ProgressComponentProps>()
 
 <template>
   <div v-if="steps.length > 1" class="forml-step-progress">
-    <p class="forml-step-progress__position" role="status">
-      Step {{ stepIndex + 1 }} of {{ steps.length }}
-    </p>
+    <p class="forml-step-progress__position" role="status">Step {{ stepIndex + 1 }} of {{ steps.length }}</p>
     <ol class="forml-step-progress__steps" aria-label="Form steps" role="list">
       <li
         v-for="(step, index) in steps"

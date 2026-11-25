@@ -1,5 +1,4 @@
-import type { FormAnswers, FormSchema, JsonValue } from './schema'
-import { FormlType } from './schema'
+import { FormlType, type FormAnswers, type FormSchema, type JsonValue } from './schema'
 import { answerErrors } from './validation'
 import { questionVisibility } from './visibility'
 
@@ -17,7 +16,11 @@ export enum FormlActionType {
 }
 
 export type FormAction =
-  | { readonly type: FormlActionType.Answer; readonly questionId: string; readonly value: JsonValue }
+  | {
+      readonly type: FormlActionType.Answer
+      readonly questionId: string
+      readonly value: JsonValue
+    }
   | { readonly type: FormlActionType.Back }
   | { readonly type: FormlActionType.Next }
   | { readonly type: FormlActionType.Submit }
@@ -34,11 +37,18 @@ export function createFormState(form: FormSchema, initialAnswers: Readonly<FormA
     }
   }
 
-  return { stepId: form.steps[0].id, answers: Object.fromEntries(answers), errors: Object.create(null) }
+  return {
+    stepId: form.steps[0].id,
+    answers: Object.fromEntries(answers),
+    errors: Object.create(null),
+  }
 }
 
 export function reduceForm(form: FormSchema, state: FormState, action: FormAction): FormState {
-  const index = Math.max(0, form.steps.findIndex((step) => step.id === state.stepId))
+  const index = Math.max(
+    0,
+    form.steps.findIndex((step) => step.id === state.stepId),
+  )
   const current = form.steps[index]
 
   switch (action.type) {
@@ -60,7 +70,7 @@ export function reduceForm(form: FormSchema, state: FormState, action: FormActio
     }
     case FormlActionType.Next: {
       const errors = answerErrors(form.steps, state.answers, current.id)
-      const next = Object.keys(errors).length ? current : form.steps[index + 1] ?? current
+      const next = Object.keys(errors).length ? current : (form.steps[index + 1] ?? current)
       return { ...state, stepId: next.id, errors }
     }
     case FormlActionType.Submit: {

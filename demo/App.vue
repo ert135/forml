@@ -1,15 +1,27 @@
 <script setup lang="ts">
 import { Effect } from 'effect'
 import { computed, shallowReactive } from 'vue'
-import { createFormState, createSubmission, decodeForm, defineProgressComponent, defineQuestionComponents, defineStepComponents, Forml, FormlActionType } from '../src'
-import type { FormStepChangeEffect, FormSchema, FormState, QuestionChangeEffects } from '../src'
-import { sameJson } from '../src/json'
+
 import ContactStep from '../.storybook/demoComponents/ContactStep.vue'
-import RemovalsInput from './RemovalsInput.vue'
 import RemovalsProgress from '../.storybook/demoComponents/RemovalsProgress.vue'
+import {
+  createFormState,
+  createSubmission,
+  decodeForm,
+  defineProgressComponent,
+  defineQuestionComponents,
+  defineStepComponents,
+  Forml,
+  FormlActionType,
+  type FormSchema,
+  type FormState,
+  type FormStepChangeEffect,
+  type QuestionChangeEffects,
+} from '../src'
+import { sameJson } from '../src/json'
+import { lookupPostcode, transformRemovalsRequest, type RemovalsPayload } from './removals'
 import removals from './removals.json'
-import { lookupPostcode, transformRemovalsRequest } from './removals'
-import type { RemovalsPayload } from './removals'
+import RemovalsInput from './RemovalsInput.vue'
 import { generateTrackingRequest, handleFailures, saveMatch, saveToLocalStorage, sendConversionValues } from './savingEffects'
 
 const props = defineProps<{ schema?: FormSchema }>()
@@ -34,23 +46,24 @@ const session = computed<RemovalsSession>((previous) => {
 })
 
 const beforeStepChange: FormStepChangeEffect = (action, state) =>
-  action.type === FormlActionType.Next
-    ? Effect.log('Continue from step', state.stepId)
-    : Effect.log('Back from step', state.stepId)
+  action.type === FormlActionType.Next ? Effect.log('Continue from step', state.stepId) : Effect.log('Back from step', state.stepId)
 
 const changeEffects = {
-  checkCurrentPostcode: ({ value }) => Effect.gen(function* () {
-    const current = session.value
-    current.postcodeStatus = undefined
-    current.postcodeStatus = yield* lookupPostcode(value).pipe(Effect.match({
-      onSuccess: (match) => {
-        if (match === undefined) return undefined
-        if (match === null) return 'Postcode not found. Check it and try again.'
-        return match.admin_district ? `${match.postcode} · ${match.admin_district}` : match.postcode
-      },
-      onFailure: () => 'Postcode lookup is temporarily unavailable.',
-    }))
-  }),
+  checkCurrentPostcode: ({ value }) =>
+    Effect.gen(function* () {
+      const current = session.value
+      current.postcodeStatus = undefined
+      current.postcodeStatus = yield* lookupPostcode(value).pipe(
+        Effect.match({
+          onSuccess: (match) => {
+            if (match === undefined) return undefined
+            if (match === null) return 'Postcode not found. Check it and try again.'
+            return match.admin_district ? `${match.postcode} · ${match.admin_district}` : match.postcode
+          },
+          onFailure: () => 'Postcode lookup is temporarily unavailable.',
+        }),
+      )
+    }),
 } satisfies QuestionChangeEffects
 
 const send = (request: RemovalsPayload) =>
@@ -64,7 +77,6 @@ const send = (request: RemovalsPayload) =>
   )
 
 const submission = createSubmission({ transform: transformRemovalsRequest, send })
-
 </script>
 
 <template>

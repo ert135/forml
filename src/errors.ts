@@ -1,4 +1,5 @@
 import { Data } from 'effect'
+
 import type { FormAction } from './state'
 
 export class FormSchemaError extends Data.TaggedError('FormSchemaError')<{
@@ -44,4 +45,5 @@ export class FormRuntimeError extends Data.TaggedError('FormRuntimeError')<{
   readonly cause: unknown
 }> {}
 
-export type FormError = FormSchemaError | FormValidationError | FormStepChangeError | QuestionChangeError | RequestTransformError | RequestSendError | FormRuntimeError
+export type FormError =
+  FormSchemaError | FormValidationError | FormStepChangeError | QuestionChangeError | RequestTransformError | RequestSendError | FormRuntimeError
