@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Effect } from 'effect'
 import { computed, shallowReactive } from 'vue'
-import { createFormState, createSubmission, decodeForm, defineProgressComponent, defineQuestionComponents, defineStepComponents, Forml } from '../src'
-import type { FormAction, FormSchema, FormState, QuestionChangeEffects } from '../src'
+import { createFormState, createSubmission, decodeForm, defineProgressComponent, defineQuestionComponents, defineStepComponents, Forml, FormlActionType } from '../src'
+import type { FormStepChangeEffect, FormSchema, FormState, QuestionChangeEffects } from '../src'
 import { sameJson } from '../src/json'
 import ContactStep from '../.storybook/demoComponents/ContactStep.vue'
 import RemovalsInput from './RemovalsInput.vue'
@@ -33,12 +33,10 @@ const session = computed<RemovalsSession>((previous) => {
   })
 })
 
-console.log('session', session.value)
-
-function dispatch(action: FormAction, next: FormState) {
-  console.log('action is ', action)
-  session.value.state = next
-}
+const beforeStepChange: FormStepChangeEffect = (action, state) =>
+  action.type === FormlActionType.Next
+    ? Effect.log('Continue from step', state.stepId)
+    : Effect.log('Back from step', state.stepId)
 
 const changeEffects = {
   checkCurrentPostcode: ({ value }) => Effect.gen(function* () {
@@ -74,13 +72,13 @@ const submission = createSubmission({ transform: transformRemovalsRequest, send 
     <h1>Compare removal quotes</h1>
     <Forml
       :schema="session.schema"
-      :state="session.state"
+      v-model:state="session.state"
       :step-components="stepComponents"
       :question-components="questionComponents"
       :progress-component="progressComponent"
+      :before-step-change="beforeStepChange"
       :change-effects="changeEffects"
       :submission="submission"
-      @action="dispatch"
     />
     <p v-if="session.state.stepId === 'moving-from'" role="status">
       {{ session.postcodeStatus }}

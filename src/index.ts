@@ -27,6 +27,7 @@ export type {
 } from './components/component-types'
 
 export * from './errors'
+export type { FormStepChangeEffect } from './step-change-effects'
 export type { QuestionChangeContext, QuestionChangeEffect, QuestionChangeEffects } from './change-effects'
 
 export {

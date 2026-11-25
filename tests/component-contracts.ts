@@ -1,8 +1,8 @@
 import type { Component } from 'vue'
 import {
-  ChoiceQuestion, DefaultStep, defineProgressComponent, defineQuestionComponents, defineStepComponents, FormlType,
+  ChoiceQuestion, DefaultStep, defineProgressComponent, defineQuestionComponents, defineStepComponents, FormlActionType, FormlType,
 } from '../src'
-import type { ProgressComponentProps, QuestionComponentProps, StepComponentProps, StepComponentSlots } from '../src'
+import type { FormStepChangeEffect, FormState, ProgressComponentProps, QuestionComponentProps, StepComponentProps, StepComponentSlots } from '../src'
 import Progress from '../src/components/FormlProgress.vue'
 
 declare const missingAnswer: Component & (new () => { $props: QuestionComponentProps })
@@ -35,3 +35,12 @@ defineStepComponents({ missingDefaultSlot })
 defineStepComponents({ requiredExtraProp })
 // @ts-expect-error The renderer passes a numeric step index.
 defineProgressComponent(wrongStepIndex)
+
+declare const beforeStepChange: FormStepChangeEffect
+declare const state: FormState
+beforeStepChange({ type: FormlActionType.Next }, state)
+beforeStepChange({ type: FormlActionType.Back }, state)
+// @ts-expect-error Answer changes do not navigate between steps.
+beforeStepChange({ type: FormlActionType.Answer, questionId: 'name', value: 'Ada' }, state)
+// @ts-expect-error Submit has its own pipeline and never reaches beforeStepChange.
+beforeStepChange({ type: FormlActionType.Submit }, state)

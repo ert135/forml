@@ -2,8 +2,9 @@
 import { Cause, Effect, Exit } from 'effect'
 import { computed, nextTick, onBeforeUnmount, ref, shallowRef, useId, watch } from 'vue'
 import type { Component } from 'vue'
+import type { FormStepChangeEffect } from '../step-change-effects'
 import type { QuestionChangeEffects } from '../change-effects'
-import { FormRuntimeError, FormSchemaError, QuestionChangeError } from '../errors'
+import { FormStepChangeError, FormRuntimeError, FormSchemaError, QuestionChangeError } from '../errors'
 import type { FormError, FormValidationError } from '../errors'
 import { sameJson } from '../json'
 import { decodeForm, FormlType } from '../schema'
@@ -26,11 +27,13 @@ const props = defineProps<{
   stepComponents?: StepComponents
   questionComponents?: QuestionComponents
   progressComponent?: ProgressComponent | null
+  beforeStepChange?: FormStepChangeEffect
   changeEffects?: QuestionChangeEffects
   submission?: FormSubmission<Request, Response, FormValidationError>
 }>()
 
 const emit = defineEmits<{
+  'update:state': [state: FormState]
   action: [action: FormAction, nextState: FormState]
   submit: [result: SubmissionResult<Request, Response> | { readonly request: FormAnswers; readonly sent: false }]
   error: [error: FormError]
@@ -85,7 +88,18 @@ watch(configurationError, (error) => {
 }, { immediate: true })
 
 let activeSubmit: AbortController | undefined
+let activeStepChange: AbortController | undefined
+let revision = 0
+const stepPending = ref(false)
+const submitting = ref(false)
+const pending = computed(() => stepPending.value || submitting.value)
 const activeChanges = new Map<string, { controller: AbortController; value: JsonValue }>()
+
+function cancelStepChange() {
+  activeStepChange?.abort()
+  activeStepChange = undefined
+  stepPending.value = false
+}
 
 function cancelChanges() {
   for (const { controller } of activeChanges.values()) controller.abort()
@@ -94,12 +108,17 @@ function cancelChanges() {
 
 const localState = shallowRef<FormState>()
 watch(form, (decoded) => {
+  revision++
+  cancelStepChange()
   activeSubmit?.abort()
+  activeSubmit = undefined
+  submitting.value = false
   cancelChanges()
   localState.value = decoded ? createFormState(decoded) : undefined
 }, { immediate: true })
 
 const state = computed(() => props.state ?? localState.value)
+watch(() => props.state, cancelStepChange, { flush: 'sync' })
 const visibility = computed(() => questionVisibility(steps.value, state.value?.answers ?? {}))
 watch(visibility, (visible) => {
   for (const [id, { controller }] of activeChanges) {
@@ -129,7 +148,6 @@ const fieldValidation = computed(() => {
   return validationError(Object.fromEntries(errors))
 })
 const submissionError = ref('')
-const pending = ref(false)
 const formElement = ref<HTMLFormElement>()
 const formId = useId()
 
@@ -149,14 +167,60 @@ function answer(id: string) {
 
 function dispatch(action: FormAction) {
   const current = state.value
-  if (!form.value || !current || pending.value) return
+  if (!form.value || !current || configurationError.value || pending.value) return
 
   const next = reduceForm(form.value, current, action)
+  const beforeStepChange = props.beforeStepChange
+  if (!beforeStepChange
+    || (action.type !== FormlActionType.Next && action.type !== FormlActionType.Back)
+    || next.stepId === current.stepId) return commit(action, current, next)
+
+  // Give the pipeline detached inputs; only commit can update the form state.
+  const actionSnapshot = { ...action }
+  const stateSnapshot = {
+    ...current,
+    answers: snapshotAnswers(current.answers),
+    errors: { ...current.errors },
+  }
+  return runBeforeStepChange(action, current, next, Effect.suspend(() => beforeStepChange(actionSnapshot, stateSnapshot)))
+}
+
+function commit(action: FormAction, current: FormState, next: FormState) {
   submissionError.value = ''
   if (!props.state) localState.value = next
+  emit('update:state', next)
   emit('action', action, next)
   if (next.stepId !== current.stepId) void nextTick(() => formElement.value?.focus())
   return next
+}
+
+async function runBeforeStepChange(action: FormAction, current: FormState, next: FormState, effect: Effect.Effect<unknown, unknown>) {
+  const controller = new AbortController()
+  const startedAt = revision
+  activeStepChange = controller
+  stepPending.value = true
+  submissionError.value = ''
+  try {
+    const result = await Effect.runPromiseExit(effect, { signal: controller.signal })
+    if (activeStepChange !== controller || controller.signal.aborted || revision !== startedAt || state.value !== current) return
+    if (Exit.isFailure(result)) {
+      const failure = result.cause.reasons.find(Cause.isFailReason)
+      const error = new FormStepChangeError({
+        action,
+        cause: failure ? failure.error : Cause.squash(result.cause),
+        message: 'Could not change steps. Try again.',
+      })
+      submissionError.value = error.message
+      emit('error', error)
+      return
+    }
+    return commit(action, current, next)
+  } finally {
+    if (activeStepChange === controller) {
+      activeStepChange = undefined
+      stepPending.value = false
+    }
+  }
 }
 
 function reportCause(cause: Cause.Cause<FormError>) {
@@ -186,8 +250,10 @@ async function changeAnswer(question: FormQuestion, value: JsonValue) {
   const { id, effectOnChange } = question
   const active = activeChanges.get(id)
   const previousValue = active ? active.value : answer(id)
-  const next = dispatch({ type: FormlActionType.Answer, questionId: id, value })
-  if (!next || !effectOnChange || sameJson(previousValue, value)) return
+  const startedAt = revision
+  const dispatched = dispatch({ type: FormlActionType.Answer, questionId: id, value })
+  const next = dispatched instanceof Promise ? await dispatched : dispatched
+  if (!next || revision !== startedAt || !effectOnChange || sameJson(previousValue, value)) return
 
   const run = registered(props.changeEffects, effectOnChange)
   if (!run) return
@@ -219,9 +285,11 @@ async function changeAnswer(question: FormQuestion, value: JsonValue) {
 
 async function advance() {
   if (!currentStep.value || configurationError.value || pending.value) return
-  const submitting = isLastStep.value
-  const next = dispatch({ type: submitting ? FormlActionType.Submit : FormlActionType.Next })
-  if (!next) return
+  const shouldSubmit = isLastStep.value
+  const startedAt = revision
+  const dispatched = dispatch({ type: shouldSubmit ? FormlActionType.Submit : FormlActionType.Next })
+  const next = dispatched instanceof Promise ? await dispatched : dispatched
+  if (!next || revision !== startedAt) return
 
   const error = validationError(next.errors)
   if (error) {
@@ -231,7 +299,7 @@ async function advance() {
     )?.focus())
     return
   }
-  if (!submitting) return
+  if (!shouldSubmit) return
 
   const answerSnapshot = snapshotAnswers(next.answers, questionVisibility(steps.value, next.answers))
   if (!props.submission) {
@@ -242,19 +310,23 @@ async function advance() {
   const controller = new AbortController()
   const submission = props.submission
   activeSubmit = controller
-  pending.value = true
+  submitting.value = true
   try {
     const result = await Effect.runPromiseExit(Effect.suspend(() => submission(answerSnapshot)), { signal: controller.signal })
     if (controller.signal.aborted) return
     if (Exit.isSuccess(result)) emit('submit', result.value)
     else reportCause(result.cause)
   } finally {
-    activeSubmit = undefined
-    pending.value = false
+    if (activeSubmit === controller) {
+      activeSubmit = undefined
+      submitting.value = false
+    }
   }
 }
 
 onBeforeUnmount(() => {
+  revision++
+  cancelStepChange()
   activeSubmit?.abort()
   cancelChanges()
 })
@@ -314,7 +386,7 @@ onBeforeUnmount(() => {
     </p>
     <div class="forml-actions">
       <button v-if="stepIndex > 0" type="button" :disabled="pending" @click="dispatch({ type: FormlActionType.Back })">Back</button>
-      <button type="submit" :disabled="pending">{{ pending ? 'Submitting…' : isLastStep ? 'Submit' : 'Continue' }}</button>
+      <button type="submit" :disabled="pending">{{ submitting ? 'Submitting…' : stepPending ? 'Working…' : isLastStep ? 'Submit' : 'Continue' }}</button>
     </div>
   </form>
 </template>

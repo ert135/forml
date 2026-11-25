@@ -71,25 +71,48 @@ Only visible questions are validated and included in submissions. Their earlier 
 import { Effect } from 'effect'
 import { shallowRef } from 'vue'
 import { createFormState, decodeForm, defineStepComponents, Forml } from 'forml'
-import type { FormAction, FormState } from 'forml'
 import DetailsStep from './DetailsStep.vue'
 import schema from './form.json'
 
 const form = Effect.runSync(decodeForm(schema))
 const state = shallowRef(createFormState(form))
 const stepComponents = defineStepComponents({ DetailsStep })
-
-function applyAction(_action: FormAction, next: FormState) {
-  state.value = next
-}
 </script>
 
 <template>
-  <Forml :schema="form" :state="state" :step-components="stepComponents" @action="applyAction" />
+  <Forml :schema="form" v-model:state="state" :step-components="stepComponents" />
 </template>
 ```
 
-The renderer calls the same reducer and emits `action` with the action and computed next state. Omit `:state` to let the renderer keep that state locally. Call the reducer directly to apply actions from outside the renderer.
+The renderer calls the same reducer and updates `v-model:state` automatically. Omit the model to let the renderer keep state locally. `@action` observes the action and committed next state; it does not need to assign state. Existing controlled forms using `:state` and an `@action` assignment remain supported. Call the reducer directly to apply actions from outside the renderer.
+
+### Run a pipeline before changing steps
+
+Pass `beforeStepChange` to describe work that must succeed before Continue (`Next`) or Back moves to another step. The function receives the navigation action and a detached snapshot of the current state, and returns an Effect. It only builds the pipeline; Forml runs it and updates state after success. Answer changes bypass this hook. Submit uses the separate `submission` pipeline after validation.
+
+```ts
+import { Effect } from 'effect'
+import { FormlActionType } from 'forml'
+import type { FormStepChangeEffect } from 'forml'
+import { saveDraft, trackStep } from './effects'
+
+const beforeStepChange: FormStepChangeEffect = (action, state) =>
+  Effect.succeed(state).pipe(
+    Effect.tap(({ answers }) => saveDraft(answers)),
+    Effect.tap(({ stepId }) => trackStep(stepId)),
+    Effect.when(Effect.succeed(action.type === FormlActionType.Next)),
+  )
+```
+
+```vue
+<Forml :schema="schema" :before-step-change="beforeStepChange" />
+```
+
+Here `saveDraft` and `trackStep` return Effects. `Effect.when` filters the whole pipeline to `Next`; Back continues normally. Omit that filter to run the pipeline in both directions. Use `Effect.void` for an explicit no-op. The pipeline's result is ignored, so there is no state assignment or dispatch callback to return. Add `v-model:state` only when the parent needs access to form state.
+
+Forml disables interaction while the pipeline runs. Failure emits `FormStepChangeError` through `@error` and leaves the current step and state unchanged. Schema replacement, an external state replacement, or unmounting interrupts pending navigation work. Keep I/O inside Effects to keep the pipeline builder pure; `reduceForm` remains a pure state transformation.
+
+Continue validates the current step first. If validation fails, Forml displays field errors without calling `beforeStepChange`. The hook runs only when the destination step differs from the current step, before committing the new state. Submit never calls it, even when submission validation returns to an invalid step. Question `changeEffects` still run after an answer is committed. External state replacements and schema initialization also bypass this hook.
 
 ## Show form progress
 
