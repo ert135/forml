@@ -37,10 +37,12 @@ import { access } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import * as forml from 'forml'
 import { useAutocomplete } from 'forml/autocomplete'
+import { useForm } from 'forml/form'
 import { decodeForm, FormlType, loadForm } from 'forml/schema'
 import * as types from 'forml/types'
 
 assert.equal(useAutocomplete, forml.useAutocomplete)
+assert.equal(useForm, forml.useForm)
 assert.equal(decodeForm, forml.decodeForm)
 assert.equal(loadForm, forml.loadForm)
 assert.equal(FormlType, forml.FormlType)
@@ -56,8 +58,9 @@ await access(fileURLToPath(import.meta.resolve('forml/progress.css')))
   await cp(join(root, '.storybook', 'demoComponents', 'AutocompleteQuestion.vue'), join(consumer, 'CustomQuestion.vue'))
   await writeFile(
     join(consumer, 'consumer.ts'),
-    `import { defineQuestionComponents } from 'forml'
+    `import { createSubmission, defineQuestionComponents } from 'forml'
 import { useAutocomplete } from 'forml/autocomplete'
+import { useForm } from 'forml/form'
 import { FormlType } from 'forml/schema'
 import type { ChoiceOption, FormConfig, QuestionComponentEmits, QuestionComponentProps } from 'forml/types'
 import CustomQuestion from './CustomQuestion.vue'
@@ -70,6 +73,17 @@ const props: QuestionComponentProps = {
 }
 useAutocomplete(props, (value) => { const answer: QuestionComponentEmits['answer'] = [value] })
 const schema = { steps: [{ id: 'custom', title: 'Custom', questions: [{ ...props.question, type: 'custom' }] }] } satisfies FormConfig<'custom'>
+const controller = useForm({ schema, questionComponents: defineQuestionComponents({ custom: CustomQuestion }), submission: createSubmission({ transform: () => ({ count: 1 }) }) }, {
+  onSubmit: (result) => { const count: unknown = result.request.count },
+})
+controller.answer('choice', 0)
+controller.next()
+controller.back()
+controller.submit()
+// @ts-expect-error Composable state is read-only; actions produce the next state.
+controller.state.value = undefined
+// @ts-expect-error Pending status is managed by the composable's effect lifecycle.
+controller.submitting.value = false
 // @ts-expect-error Imported declarations must preserve the number answer contract.
 const invalid: QuestionComponentEmits<number>['answer'] = ['not a number']
 `,

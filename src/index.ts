@@ -11,6 +11,7 @@ export { default as TextQuestion } from '../.storybook/demoComponents/TextQuesti
 export const FormlProgress = defineProgressComponent(Progress)
 
 export { useAutocomplete } from './autocomplete'
+export { useForm } from './use-form'
 
 export { defineProgressComponent, defineQuestionComponents, defineStepComponents } from './components/component-types'
 

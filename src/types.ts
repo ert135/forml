@@ -15,4 +15,5 @@ export type { AnswersFromSchema, ChoiceOption, FormAnswers, FormConfig, FormQues
 export type { FormAction, FormState } from './state'
 export type { FormStepChangeEffect } from './step-change-effects'
 export type { FormSubmission, SchemaSubmissionOptions, SubmissionOptions, SubmissionResult } from './submission'
+export type { UseFormCallbacks, UseFormOptions, UseFormSubmitResult } from './use-form'
 export type { QuestionValidationContext, QuestionValidator, QuestionValidators } from './validation'

@@ -13,11 +13,12 @@ Use the package name in application code and custom components:
 ```ts
 import { defineQuestionComponents, Forml } from 'forml'
 import { useAutocomplete } from 'forml/autocomplete'
+import { useForm } from 'forml/form'
 import { decodeForm, FormlType } from 'forml/schema'
 import type { ChoiceOption, QuestionComponentEmits, QuestionComponentProps } from 'forml/types'
 ```
 
-The root `forml` entry still exports these APIs. `forml/types` contains type-only exports; `forml/schema` exposes schema decoding and `FormlType`; `forml/autocomplete` exposes the reusable autocomplete behavior. Import styles with `import 'forml/style.css'`.
+The root `forml` entry still exports these APIs. `forml/types` contains type-only exports; `forml/schema` exposes schema decoding and `FormlType`; `forml/autocomplete` exposes the reusable autocomplete behavior; `forml/form` exposes `useForm`. Import styles with `import 'forml/style.css'`.
 
 All demo components and stories use these public paths. Local Vite and TypeScript configuration resolves them to the source for development, while the published package resolves them to the built JavaScript and declarations. Consumers do not need aliases or access to this repository's `src` folder.
 
@@ -120,6 +121,29 @@ Set `showWhen` directly on a question. Each key is a question ID and its array l
 Only visible questions are validated and included in submissions. Their earlier answers are restored when the questions become visible again. Rules can refer to questions in other steps. A hidden source question leaves its dependent questions hidden. For headless submissions, pass the schema to `createSubmission` to apply the same rules. Pass all steps when calling `validateAnswers` directly to resolve cross-step rules.
 
 ## Manage state
+
+`Forml.vue` delegates its behavior to `useForm`. To build your own renderer, call the same composable inside Vue setup:
+
+```vue
+<script setup lang="ts">
+import { useForm } from 'forml/form'
+
+import schema from './form.json'
+
+const { state, currentStep, pending, answer, next, back, submit } = useForm(
+  { schema },
+  { onSubmit: (result) => console.log('Submitted', result.request) },
+)
+</script>
+```
+
+Inputs call `answer(questionId, value)` for a visible question on the current step. `next()` validates and advances; `back()` navigates back; `submit()` validates every step and runs the submission pipeline. `next()` does not submit when already on the last step. The `advance()` helper used by `Forml` chooses Continue or Submit based on the current step. Each call to `useForm` owns an independent form instance.
+
+The options accept the schema, component registrations, validators, change effects, `beforeStepChange`, and submission pipeline used by `Forml`. For externally controlled state, provide `options.state` and update it in `onUpdateState`. Use reactive options, component props, or getters when the schema or state can change. Optional callbacks are `onUpdateState`, `onAction`, `onSubmit`, and `onError`; their arguments match the corresponding `Forml` events.
+
+The returned state is a read-only computed ref. `createFormState` and `reduceForm` calculate new state without mutating the previous state. The composable commits those snapshots and runs effects, callbacks, cancellation, and focus handling. Its watchers react to external schema/state changes, configuration errors, and hidden questions; computed getters only derive values. Disposing the Vue scope cancels pending work, and subsequent actions are ignored. `beforeStepChange` still applies only to Continue and Back; Submit has its own pipeline.
+
+Renderer bindings include `steps`, `currentStep`, `stepIndex`, `isLastStep`, `pending`, `configurationError`, `fieldValidation`, and `submissionError`. `answerValue(id)` and `fieldError(id)` read an answer and its error. `questionComponent(type)`, `stepComponent`, `inputId(index)`, and `formElement` support custom markup with the same components and focus behavior as `Forml`.
 
 `createFormState(form, initialAnswers?)` returns the initial step, answers, and field errors. `reduceForm(form, state, action)` returns the next state without mutating its arguments or doing I/O. Actions use `FormlActionType.Answer`, `FormlActionType.Back`, `FormlActionType.Next`, and `FormlActionType.Submit`. The submit action validates every step and moves to the first invalid step when needed.
 

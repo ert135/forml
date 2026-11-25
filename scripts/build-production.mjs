@@ -57,6 +57,7 @@ try {
     types: 'export {}\n',
     schema: "export { decodeForm, FormlType, loadForm } from './forml.js'\n",
     autocomplete: "export { useAutocomplete } from './forml.js'\n",
+    form: "export { useForm } from './forml.js'\n",
   }
   await Promise.all(Object.entries(subpaths).map(([name, source]) => writeFile(join(root, 'dist', `${name}.js`), source)))
 } finally {

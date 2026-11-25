@@ -7,7 +7,8 @@
       "forml": ["./src/index.ts"],
       "forml/types": ["./src/types.ts"],
       "forml/schema": ["./src/schema.ts"],
-      "forml/autocomplete": ["./src/autocomplete.ts"]
+      "forml/autocomplete": ["./src/autocomplete.ts"],
+      "forml/form": ["./src/use-form.ts"]
     },
     "strict": true,
     "verbatimModuleSyntax": true,
