@@ -1,8 +1,7 @@
 <script setup lang="ts">
+import { FormlType } from 'forml/schema'
+import type { ChoiceOption, JsonValue, QuestionComponentEmits, QuestionComponentProps } from 'forml/types'
 import { computed } from 'vue'
-
-import type { QuestionComponentEmits, QuestionComponentProps } from '../../src/components/component-types'
-import { FormlType, type ChoiceOption, type JsonValue } from '../../src/schema'
 
 const props = defineProps<QuestionComponentProps>()
 const emit = defineEmits<QuestionComponentEmits<JsonValue>>()

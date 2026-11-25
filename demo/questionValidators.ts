@@ -1,4 +1,4 @@
-import type { QuestionValidators } from '../src'
+import type { QuestionValidators } from 'forml/types'
 
 export const questionValidators = {
   date: ({ value, question }) => {

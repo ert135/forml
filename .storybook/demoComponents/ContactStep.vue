@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { StepComponentProps, StepComponentSlots } from '../../src'
+import type { StepComponentProps, StepComponentSlots } from 'forml/types'
 
 defineProps<StepComponentProps>()
 defineSlots<StepComponentSlots>()

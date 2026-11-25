@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
+import { defineQuestionComponents, Forml, type FormAnswers, type FormConfig, type FormSchema } from 'forml'
 import { ref } from 'vue'
 
 import { questionValidators } from '../../demo/questionValidators'
-import { defineQuestionComponents, Forml, type FormAnswers, type FormConfig, type FormSchema } from '../../src'
 import RemovalsInput from '../demoComponents/RemovalsInput.vue'
 
 const questionComponents = defineQuestionComponents({ date: RemovalsInput, tel: RemovalsInput })

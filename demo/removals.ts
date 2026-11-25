@@ -1,6 +1,5 @@
 import { Effect, Schema } from 'effect'
-
-import type { FormAnswers, JsonValue } from '../src'
+import type { FormAnswers, JsonValue } from 'forml/types'
 
 const RemovalsRequest = Schema.Struct({
   customerFirstName: Schema.NonEmptyString,

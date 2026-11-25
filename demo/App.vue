@@ -1,10 +1,5 @@
 <script setup lang="ts">
 import { Effect } from 'effect'
-import { computed, shallowReactive } from 'vue'
-
-import ContactStep from '../.storybook/demoComponents/ContactStep.vue'
-import RemovalsInput from '../.storybook/demoComponents/RemovalsInput.vue'
-import RemovalsProgress from '../.storybook/demoComponents/RemovalsProgress.vue'
 import {
   createFormState,
   createSubmission,
@@ -14,12 +9,17 @@ import {
   defineStepComponents,
   Forml,
   FormlActionType,
+  sameJson,
   type FormSchema,
   type FormState,
   type FormStepChangeEffect,
   type QuestionChangeEffects,
-} from '../src'
-import { sameJson } from '../src/json'
+} from 'forml'
+import { computed, shallowReactive } from 'vue'
+
+import ContactStep from '../.storybook/demoComponents/ContactStep.vue'
+import RemovalsInput from '../.storybook/demoComponents/RemovalsInput.vue'
+import RemovalsProgress from '../.storybook/demoComponents/RemovalsProgress.vue'
 import { questionValidators } from './questionValidators'
 import { lookupPostcode, transformRemovalsRequest, type RemovalsPayload } from './removals'
 import removals from './removals.json'

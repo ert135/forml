@@ -11,36 +11,17 @@ export { default as TextQuestion } from '../.storybook/demoComponents/TextQuesti
 export const FormlProgress = defineProgressComponent(Progress)
 
 export { useAutocomplete } from './autocomplete'
-export type { AutocompleteProps, AutocompleteValue } from './autocomplete'
 
 export { defineProgressComponent, defineQuestionComponents, defineStepComponents } from './components/component-types'
 
-export type {
-  ProgressComponent,
-  ProgressComponentProps,
-  QuestionComponentEmits,
-  QuestionComponentProps,
-  QuestionComponents,
-  StepComponentProps,
-  StepComponentSlots,
-  StepComponents,
-} from './components/component-types'
-
 export * from './errors'
-export type { FormStepChangeEffect } from './step-change-effects'
-export type { QuestionChangeContext, QuestionChangeEffect, QuestionChangeEffects } from './change-effects'
+export type * from './types'
 
 export { decodeForm, FormlType, loadForm } from './schema'
-
-export type { AnswersFromSchema, ChoiceOption, FormAnswers, FormConfig, FormQuestion, FormSchema, FormStep, JsonValue, ShowWhen } from './schema'
+export { sameJson } from './json'
 
 export { createFormState, FormlActionType, reduceForm } from './state'
 
-export type { FormAction, FormState } from './state'
-
 export { createSubmission } from './submission'
 
-export type { FormSubmission, SchemaSubmissionOptions, SubmissionOptions, SubmissionResult } from './submission'
-
 export { validateAnswers } from './validation'
-export type { QuestionValidationContext, QuestionValidator, QuestionValidators } from './validation'

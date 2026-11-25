@@ -9,6 +9,18 @@
       "types": "./dist/src/index.d.ts",
       "import": "./dist/forml.js"
     },
+    "./types": {
+      "types": "./dist/src/types.d.ts",
+      "import": "./dist/types.js"
+    },
+    "./schema": {
+      "types": "./dist/src/schema.d.ts",
+      "import": "./dist/schema.js"
+    },
+    "./autocomplete": {
+      "types": "./dist/src/autocomplete.d.ts",
+      "import": "./dist/autocomplete.js"
+    },
     "./progress.css": "./dist/forml.css",
     "./style.css": "./dist/forml.css"
   },
@@ -22,6 +34,7 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "build": "node scripts/build-production.mjs && vue-tsc -p tsconfig.build.json",
+    "check:package": "node scripts/check-package.mjs",
     "build:demo": "vite build demo --config vite.config.ts --mode demo --outDir ../dist-demo --emptyOutDir",
     "storybook": "storybook dev -p 6006",
     "build:storybook": "storybook build",

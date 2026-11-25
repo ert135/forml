@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -51,6 +51,14 @@ try {
       colors: process.stdout.isTTY,
     }),
   )
+
+  // Public subpaths share one bundle so classes and Vue components keep their identity.
+  const subpaths = {
+    types: 'export {}\n',
+    schema: "export { decodeForm, FormlType, loadForm } from './forml.js'\n",
+    autocomplete: "export { useAutocomplete } from './forml.js'\n",
+  }
+  await Promise.all(Object.entries(subpaths).map(([name, source]) => writeFile(join(root, 'dist', `${name}.js`), source)))
 } finally {
   await rm(compiled, { recursive: true, force: true })
 }

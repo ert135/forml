@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
+import { AutocompleteQuestion, FormlType, type JsonValue } from 'forml'
 import { useArgs } from 'storybook/preview-api'
-
-import { AutocompleteQuestion, FormlType, type JsonValue } from '../../src'
 
 const meta = {
   title: 'forml/Autocomplete question',

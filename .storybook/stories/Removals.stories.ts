@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { Effect } from 'effect'
+import { decodeForm } from 'forml/schema'
 
 import Removals from '../../demo/App.vue'
 import removals from '../../demo/removals.json'
-import { decodeForm } from '../../src'
 
 const meta = {
   title: 'forml/Removals quote',

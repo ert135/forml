@@ -6,6 +6,21 @@
 
 `forml` renders Vue 3 forms from JSON. Each step contains questions, and each question type maps to a Vue component. A pure reducer manages answers, validation, and navigation. Effect 4 loads configurations and prepares and sends API requests.
 
+## Public imports
+
+Use the package name in application code and custom components:
+
+```ts
+import { defineQuestionComponents, Forml } from 'forml'
+import { useAutocomplete } from 'forml/autocomplete'
+import { decodeForm, FormlType } from 'forml/schema'
+import type { ChoiceOption, QuestionComponentEmits, QuestionComponentProps } from 'forml/types'
+```
+
+The root `forml` entry still exports these APIs. `forml/types` contains type-only exports; `forml/schema` exposes schema decoding and `FormlType`; `forml/autocomplete` exposes the reusable autocomplete behavior. Import styles with `import 'forml/style.css'`.
+
+All demo components and stories use these public paths. Local Vite and TypeScript configuration resolves them to the source for development, while the published package resolves them to the built JavaScript and declarations. Consumers do not need aliases or access to this repository's `src` folder.
+
 ## Run the examples
 
 ```sh
@@ -71,7 +86,8 @@ Focus the field to see the options, then type to filter their labels without cas
 Custom autocomplete components can share the library's behavior with `useAutocomplete`:
 
 ```ts
-import { useAutocomplete, type AutocompleteValue, type QuestionComponentEmits, type QuestionComponentProps } from 'forml'
+import { useAutocomplete, type AutocompleteValue } from 'forml/autocomplete'
+import type { QuestionComponentEmits, QuestionComponentProps } from 'forml/types'
 
 const props = defineProps<QuestionComponentProps>()
 const emit = defineEmits<QuestionComponentEmits<AutocompleteValue>>()
@@ -232,7 +248,7 @@ Choose any non-empty type name and register its Vue component through `questionC
 
 ```vue
 <script setup lang="ts">
-import type { QuestionComponentEmits, QuestionComponentProps } from 'forml'
+import type { QuestionComponentEmits, QuestionComponentProps } from 'forml/types'
 
 defineProps<QuestionComponentProps>()
 const emit = defineEmits<QuestionComponentEmits<string>>()
@@ -420,3 +436,5 @@ Here `values.email` is a `string` and `values.channel` is `'email' | 'sms'`. Use
 Run `npm run format` to format the project and sort imports with Prettier. Run `npm run format:check` to check formatting without changing files. Imports are grouped as Node built-ins, external packages, and local modules; side-effect imports retain their ordering.
 
 Run `npm test` for the framework tests and `npm run check` for source and type contract checks. Run `npm run build` to produce the minified ESM bundle and stylesheet in `dist/` with Webpack, along with TypeScript declarations.
+
+After building, run `npm run check:package` to verify the npm package's public imports and a copied example component in a temporary consumer project without source aliases.

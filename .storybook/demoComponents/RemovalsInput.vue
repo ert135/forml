@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { QuestionComponentEmits, QuestionComponentProps } from '../../src'
+import type { QuestionComponentEmits, QuestionComponentProps } from 'forml/types'
 
 defineProps<QuestionComponentProps>()
 const emit = defineEmits<QuestionComponentEmits<string>>()

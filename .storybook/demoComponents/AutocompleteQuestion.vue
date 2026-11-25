@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useAutocomplete, type AutocompleteValue } from '../../src/autocomplete'
-import type { QuestionComponentEmits, QuestionComponentProps } from '../../src/components/component-types'
+import { useAutocomplete, type AutocompleteValue } from 'forml/autocomplete'
+import type { QuestionComponentEmits, QuestionComponentProps } from 'forml/types'
 
 const props = defineProps<QuestionComponentProps>()
 const emit = defineEmits<QuestionComponentEmits<AutocompleteValue>>()

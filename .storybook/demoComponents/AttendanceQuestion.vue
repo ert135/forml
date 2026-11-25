@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ChoiceOption, QuestionComponentEmits, QuestionComponentProps } from '../../src'
+import type { ChoiceOption, QuestionComponentEmits, QuestionComponentProps } from 'forml/types'
 
 defineProps<QuestionComponentProps>()
 const emit = defineEmits<QuestionComponentEmits<ChoiceOption['value']>>()

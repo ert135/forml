@@ -3,6 +3,12 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "paths": {
+      "forml": ["./src/index.ts"],
+      "forml/types": ["./src/types.ts"],
+      "forml/schema": ["./src/schema.ts"],
+      "forml/autocomplete": ["./src/autocomplete.ts"]
+    },
     "strict": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
@@ -16,15 +22,8 @@
     "demo/**/*.ts",
     "demo/**/*.vue",
     ".storybook/**/*.ts",
+    ".storybook/**/*.vue",
     "tests/**/*.ts",
-    "vite.config.ts",
-    ".storybook/demoComponents/AttendanceQuestion.vue",
-    ".storybook/demoComponents/ContactStep.vue",
-    ".storybook/demoComponents/CheckboxQuestion.vue",
-    ".storybook/demoComponents/ChoiceQuestion.vue",
-    ".storybook/demoComponents/SelectQuestion.vue",
-    ".storybook/demoComponents/TextQuestion.vue",
-    ".storybook/demoComponents/DefaultStep.vue",
-    ".storybook/demoComponents/RemovalsProgress.vue"
+    "vite.config.ts"
   ]
 }

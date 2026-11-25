@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ProgressComponentProps } from '../../src'
+import type { ProgressComponentProps } from 'forml/types'
 
 defineProps<ProgressComponentProps>()
 </script>

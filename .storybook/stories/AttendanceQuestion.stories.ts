@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
+import { FormlType } from 'forml/schema'
 
-import { FormlType } from '../../src'
 import AttendanceQuestion from '../demoComponents/AttendanceQuestion.vue'
 
 const meta = {

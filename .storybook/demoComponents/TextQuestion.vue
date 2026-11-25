@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { QuestionComponentEmits, QuestionComponentProps } from '../../src/components/component-types'
-import { FormlType } from '../../src/schema'
+import { FormlType } from 'forml/schema'
+import type { QuestionComponentEmits, QuestionComponentProps } from 'forml/types'
 
 defineProps<QuestionComponentProps>()
 const emit = defineEmits<QuestionComponentEmits<string>>()
