@@ -2,6 +2,7 @@
 import { Cause, Effect, Exit } from 'effect'
 import { computed, nextTick, onBeforeUnmount, ref, shallowRef, useId, watch, type Component } from 'vue'
 
+import AutocompleteQuestion from '../../.storybook/demoComponents/AutocompleteQuestion.vue'
 import CheckboxQuestion from '../../.storybook/demoComponents/CheckboxQuestion.vue'
 import ChoiceQuestion from '../../.storybook/demoComponents/ChoiceQuestion.vue'
 import DefaultStep from '../../.storybook/demoComponents/DefaultStep.vue'
@@ -41,6 +42,7 @@ const builtIns: Readonly<Record<string, Component>> = {
   [FormlType.Email]: TextQuestion,
   [FormlType.Textarea]: TextQuestion,
   [FormlType.Select]: SelectQuestion,
+  [FormlType.Autocomplete]: AutocompleteQuestion,
   [FormlType.Multiselect]: ChoiceQuestion,
   [FormlType.Radio]: ChoiceQuestion,
   [FormlType.Checkbox]: CheckboxQuestion,

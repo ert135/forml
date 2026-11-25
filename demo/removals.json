@@ -27,8 +27,9 @@
         },
         {
           "id": "currentType",
-          "type": "radio",
+          "type": "autocomplete",
           "label": "What is the property type?",
+          "placeholder": "Search property types",
           "required": true,
           "options": [
             { "label": "Flat", "value": "apartment-flat" },

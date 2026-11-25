@@ -9,7 +9,8 @@
       "types": "./dist/src/index.d.ts",
       "import": "./dist/forml.js"
     },
-    "./progress.css": "./dist/forml.css"
+    "./progress.css": "./dist/forml.css",
+    "./style.css": "./dist/forml.css"
   },
   "files": [
     "dist"

@@ -1,0 +1,71 @@
+import type { Meta, StoryObj } from '@storybook/vue3-vite'
+import { ref, watch } from 'vue'
+
+import { AutocompleteQuestion, FormlType, type JsonValue } from '../../src'
+
+const meta = {
+  title: 'forml/Autocomplete question',
+  component: AutocompleteQuestion,
+  args: {
+    inputId: 'autocomplete-example',
+    value: null,
+    question: {
+      id: 'city',
+      type: FormlType.Autocomplete,
+      label: 'City',
+      placeholder: 'Search cities',
+      required: true,
+      options: [
+        { label: 'Bristol', value: 'bristol' },
+        { label: 'Cardiff', value: 'cardiff' },
+        { label: 'Edinburgh', value: 'edinburgh' },
+        { label: 'London', value: 'london' },
+        { label: 'Manchester', value: 'manchester' },
+      ],
+    },
+  },
+  render: (args) => ({
+    components: { AutocompleteQuestion },
+    setup() {
+      const value = ref<JsonValue | undefined>(args.value)
+      watch(
+        () => args.value,
+        (next) => {
+          value.value = next
+        },
+      )
+      return { args, value }
+    },
+    template: `
+      <div class="forml">
+        <AutocompleteQuestion v-bind="args" :value="value" @answer="value = $event" />
+        <p v-if="args.error" :id="args.describedBy" class="forml-error">{{ args.error }}</p>
+        <p>Selected value: <code>{{ JSON.stringify(value) ?? 'None' }}</code></p>
+      </div>
+    `,
+  }),
+} satisfies Meta<typeof AutocompleteQuestion>
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Search: Story = {}
+export const Selected: Story = { args: { value: 'cardiff' } }
+export const Required: Story = {
+  args: { error: 'City is required.', describedBy: 'autocomplete-example-error' },
+}
+export const TypedValues: Story = {
+  args: {
+    question: {
+      id: 'choice',
+      type: FormlType.Autocomplete,
+      label: 'Choose a value',
+      options: [
+        { label: 'Zero (number)', value: 0 },
+        { label: 'Zero (string)', value: '0' },
+        { label: 'No (boolean)', value: false },
+        { label: 'Empty string', value: '' },
+      ],
+    },
+  },
+}

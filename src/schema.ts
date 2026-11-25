@@ -8,6 +8,7 @@ export enum FormlType {
   Email = 'email',
   Textarea = 'textarea',
   Select = 'select',
+  Autocomplete = 'autocomplete',
   Multiselect = 'multiselect',
   Radio = 'radio',
   Checkbox = 'checkbox',
@@ -73,7 +74,7 @@ type AnswerValue<Question extends FormQuestion> = Question['type'] extends `${Fo
   ? string
   : Question['type'] extends `${FormlType.Checkbox}`
     ? boolean
-    : Question['type'] extends `${FormlType.Select | FormlType.Radio}`
+    : Question['type'] extends `${FormlType.Select | FormlType.Autocomplete | FormlType.Radio}`
       ? ChoiceValue<Question>
       : Question['type'] extends `${FormlType.Multiselect}`
         ? readonly ChoiceValue<Question>[]
@@ -111,7 +112,7 @@ export type AnswersFromSchema<Definition extends FormSchema> = Definition extend
     : KnownAnswers<Questions<Definition>, RequiredIds<Definition['steps']>>
   : never
 
-const choiceTypes = new Set<string>([FormlType.Select, FormlType.Multiselect, FormlType.Radio])
+const choiceTypes = new Set<string>([FormlType.Select, FormlType.Autocomplete, FormlType.Multiselect, FormlType.Radio])
 
 export function decodeForm(input: unknown): Effect.Effect<FormSchema, FormSchemaError> {
   return Schema.decodeUnknownEffect(Definition)(input).pipe(

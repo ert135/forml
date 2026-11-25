@@ -5,7 +5,7 @@ import { FormlType, type FormAnswers, type FormQuestion, type FormStep, type Jso
 import { questionVisibility } from './visibility'
 
 function questionError(question: FormQuestion, value: JsonValue | undefined): string | undefined {
-  const singleChoice = question.type === FormlType.Select || question.type === FormlType.Radio
+  const singleChoice = question.type === FormlType.Select || question.type === FormlType.Autocomplete || question.type === FormlType.Radio
   const empty = value == null || (!singleChoice && typeof value === 'string' && !value.trim()) || (Array.isArray(value) && value.length === 0)
 
   if (question.required && (empty || (question.type === FormlType.Checkbox && value === false))) {
@@ -25,6 +25,7 @@ function questionError(question: FormQuestion, value: JsonValue | undefined): st
     case FormlType.Checkbox:
       return typeof value === 'boolean' ? undefined : 'Choose whether to check this box.'
     case FormlType.Select:
+    case FormlType.Autocomplete:
     case FormlType.Radio:
       return question.options?.some((option) => option.value === value) ? undefined : 'Choose an available option.'
     case FormlType.Multiselect:

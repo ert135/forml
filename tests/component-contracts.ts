@@ -1,6 +1,7 @@
 import type { Component } from 'vue'
 
 import {
+  AutocompleteQuestion,
   ChoiceQuestion,
   DefaultStep,
   defineProgressComponent,
@@ -38,6 +39,7 @@ declare const wrongStepIndex: Component &
   })
 
 defineQuestionComponents({ [FormlType.Radio]: ChoiceQuestion })
+defineQuestionComponents({ [FormlType.Autocomplete]: AutocompleteQuestion })
 defineStepComponents({ DefaultStep })
 defineProgressComponent(Progress)
 

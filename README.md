@@ -43,7 +43,30 @@ The removals example follows the Property, Details, and Contact steps in the dem
 }
 ```
 
-Use `FormlType.Text`, `FormlType.Email`, `FormlType.Textarea`, `FormlType.Select`, `FormlType.Multiselect`, `FormlType.Radio`, and `FormlType.Checkbox` in TypeScript. `satisfies FormConfig` checks a TypeScript configuration against these choices. `FormConfig<'custom-type'>` also accepts the supplied custom type. JSON uses the enum’s string values. Give every step and question a unique ID within its respective set. Choice values can be strings, numbers, or booleans. Multiselect answers are arrays and default to `[]`. Unanswered questions are omitted unless they have a default. Steps and questions support a `description` and a `props` object for additional data your components need.
+Use `FormlType.Text`, `FormlType.Email`, `FormlType.Textarea`, `FormlType.Select`, `FormlType.Autocomplete`, `FormlType.Multiselect`, `FormlType.Radio`, and `FormlType.Checkbox` in TypeScript. `satisfies FormConfig` checks a TypeScript configuration against these choices. `FormConfig<'custom-type'>` also accepts the supplied custom type. JSON uses the enum’s string values. Give every step and question a unique ID within its respective set. Choice values can be strings, numbers, or booleans. Multiselect answers are arrays and default to `[]`. Unanswered questions are omitted unless they have a default. Steps and questions support a `description` and a `props` object for additional data your components need.
+
+### Autocomplete questions
+
+Use `autocomplete` for a searchable list with a single selected value. It uses the same `options` as `select`, and stores the option's value rather than its label. The removals demo uses it for the property-type question.
+
+```json
+{
+  "id": "city",
+  "type": "autocomplete",
+  "label": "City",
+  "placeholder": "Search cities",
+  "required": true,
+  "options": [
+    { "label": "Cardiff", "value": "cardiff" },
+    { "label": "London", "value": "london" },
+    { "label": "Manchester", "value": "manchester" }
+  ]
+}
+```
+
+Import `forml/style.css` when using the published package to include the dropdown styles. `AutocompleteQuestion` is also exported for standalone use or custom registration. The existing `forml/progress.css` export remains an alias for the same stylesheet.
+
+Focus the field to see the options, then type to filter their labels without case sensitivity. Click an option, or use the arrow keys and Enter, to select it. Escape and Tab close the list without accepting a highlighted option. Editing a selection clears the previous answer; unselected search text is discarded on blur. The clear button sets the answer to `null`. Only listed values pass validation, including numeric, boolean, and empty-string values. No matches displays an empty-results message. [Interactive stories](.storybook/stories/AutocompleteQuestion.stories.ts)
 
 ### Conditional questions
 
