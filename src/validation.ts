@@ -4,6 +4,16 @@ import { FormValidationError } from './errors'
 import { FormlType, type FormAnswers, type FormQuestion, type FormStep, type JsonValue } from './schema'
 import { questionVisibility } from './visibility'
 
+export interface QuestionValidationContext {
+  readonly question: FormQuestion
+  readonly value: JsonValue
+  readonly answers: Readonly<FormAnswers>
+}
+
+/** A pure, synchronous rule. Return a field error, or undefined when valid. */
+export type QuestionValidator = (context: QuestionValidationContext) => string | undefined
+export type QuestionValidators = Readonly<Record<string, QuestionValidator>>
+
 function questionError(question: FormQuestion, value: JsonValue | undefined): string | undefined {
   const singleChoice = question.type === FormlType.Select || question.type === FormlType.Autocomplete || question.type === FormlType.Radio
   const empty = value == null || (!singleChoice && typeof value === 'string' && !value.trim()) || (Array.isArray(value) && value.length === 0)
@@ -35,7 +45,12 @@ function questionError(question: FormQuestion, value: JsonValue | undefined): st
   }
 }
 
-export function answerErrors(steps: readonly FormStep[], answers: Readonly<FormAnswers>, stepId?: string): Readonly<Record<string, string>> {
+export function answerErrors(
+  steps: readonly FormStep[],
+  answers: Readonly<FormAnswers>,
+  stepId?: string,
+  questionValidators?: QuestionValidators,
+): Readonly<Record<string, string>> {
   const fields: Record<string, string> = Object.create(null)
   const visibility = questionVisibility(steps, answers)
 
@@ -44,7 +59,8 @@ export function answerErrors(steps: readonly FormStep[], answers: Readonly<FormA
     for (const question of step.questions) {
       if (!visibility.get(question.id)) continue
       const value = Object.hasOwn(answers, question.id) ? answers[question.id] : undefined
-      const message = questionError(question, value)
+      const validate = questionValidators && Object.hasOwn(questionValidators, question.type) ? questionValidators[question.type] : undefined
+      const message = questionError(question, value) ?? (value != null ? validate?.({ question, value, answers }) : undefined)
       if (message) fields[question.id] = message
     }
   }
@@ -57,9 +73,13 @@ export function validationError(fields: Readonly<Record<string, string>>): FormV
   }
 }
 
-export function validateAnswers(steps: readonly FormStep[], answers: Readonly<FormAnswers>): Effect.Effect<void, FormValidationError> {
+export function validateAnswers(
+  steps: readonly FormStep[],
+  answers: Readonly<FormAnswers>,
+  questionValidators?: QuestionValidators,
+): Effect.Effect<void, FormValidationError> {
   return Effect.suspend(() => {
-    const error = validationError(answerErrors(steps, answers))
+    const error = validationError(answerErrors(steps, answers, undefined, questionValidators))
     return error ? Effect.fail(error) : Effect.void
   })
 }

@@ -148,7 +148,14 @@
         { "id": "firstName", "type": "text", "label": "First name", "required": true },
         { "id": "lastName", "type": "text", "label": "Last name", "required": true },
         { "id": "email", "type": "email", "label": "Email address", "required": true },
-        { "id": "phone", "type": "tel", "label": "Phone number", "required": true }
+        {
+          "id": "phone",
+          "type": "tel",
+          "label": "Phone number",
+          "placeholder": "e.g. 07700 900123",
+          "required": true,
+          "props": { "minDigits": 7 }
+        }
       ]
     }
   ]

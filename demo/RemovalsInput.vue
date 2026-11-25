@@ -16,6 +16,8 @@ function update(event: Event) {
     :name="question.id"
     :type="question.type === 'date' ? 'date' : 'tel'"
     :autocomplete="question.type === 'tel' ? 'tel' : undefined"
+    :placeholder="question.placeholder"
+    :min="question.type === 'date' && typeof question.props?.min === 'string' ? question.props.min : undefined"
     :value="typeof value === 'string' ? value : ''"
     :required="question.required"
     :aria-describedby="describedBy"

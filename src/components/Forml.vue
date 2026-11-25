@@ -15,7 +15,7 @@ import { decodeForm, FormlType, type FormAnswers, type FormQuestion, type JsonVa
 import { createFormState, FormlActionType, reduceForm, type FormAction, type FormState } from '../state'
 import type { FormStepChangeEffect } from '../step-change-effects'
 import type { FormSubmission, SubmissionResult } from '../submission'
-import { validationError } from '../validation'
+import { validationError, type QuestionValidators } from '../validation'
 import { questionVisibility } from '../visibility'
 import type { ProgressComponent, QuestionComponents, StepComponents } from './component-types'
 
@@ -24,6 +24,7 @@ const props = defineProps<{
   state?: FormState
   stepComponents?: StepComponents
   questionComponents?: QuestionComponents
+  questionValidators?: QuestionValidators
   progressComponent?: ProgressComponent | null
   beforeStepChange?: FormStepChangeEffect
   changeEffects?: QuestionChangeEffects
@@ -183,7 +184,7 @@ function dispatch(action: FormAction) {
   const current = state.value
   if (!form.value || !current || configurationError.value || pending.value) return
 
-  const next = reduceForm(form.value, current, action)
+  const next = reduceForm(form.value, current, action, props.questionValidators)
   const beforeStepChange = props.beforeStepChange
   if (!beforeStepChange || (action.type !== FormlActionType.Next && action.type !== FormlActionType.Back) || next.stepId === current.stepId)
     return commit(action, current, next)

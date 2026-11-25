@@ -1,5 +1,5 @@
 import { FormlType, type FormAnswers, type FormSchema, type JsonValue } from './schema'
-import { answerErrors } from './validation'
+import { answerErrors, type QuestionValidators } from './validation'
 import { questionVisibility } from './visibility'
 
 export interface FormState {
@@ -44,7 +44,7 @@ export function createFormState(form: FormSchema, initialAnswers: Readonly<FormA
   }
 }
 
-export function reduceForm(form: FormSchema, state: FormState, action: FormAction): FormState {
+export function reduceForm(form: FormSchema, state: FormState, action: FormAction, questionValidators?: QuestionValidators): FormState {
   const index = Math.max(
     0,
     form.steps.findIndex((step) => step.id === state.stepId),
@@ -69,12 +69,12 @@ export function reduceForm(form: FormSchema, state: FormState, action: FormActio
       return previous ? { ...state, stepId: previous.id, errors: Object.create(null) } : state
     }
     case FormlActionType.Next: {
-      const errors = answerErrors(form.steps, state.answers, current.id)
+      const errors = answerErrors(form.steps, state.answers, current.id, questionValidators)
       const next = Object.keys(errors).length ? current : (form.steps[index + 1] ?? current)
       return { ...state, stepId: next.id, errors }
     }
     case FormlActionType.Submit: {
-      const errors = answerErrors(form.steps, state.answers)
+      const errors = answerErrors(form.steps, state.answers, undefined, questionValidators)
       const invalid = form.steps.find((step) => step.questions.some((question) => Object.hasOwn(errors, question.id)))
       return { ...state, stepId: (invalid ?? current).id, errors }
     }

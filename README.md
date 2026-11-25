@@ -211,6 +211,94 @@ Import the Vue component modules from the shared source or component package use
 
 The registration helpers check imported Vue components for compatible props and their slot or event contract.
 
+## Add custom question types
+
+Choose any non-empty type name and register its Vue component through `questionComponents`. You do not need to extend `FormlType`. For example, a custom `date` question can be implemented as `DateQuestion.vue`:
+
+```vue
+<script setup lang="ts">
+import type { QuestionComponentEmits, QuestionComponentProps } from 'forml'
+
+defineProps<QuestionComponentProps>()
+const emit = defineEmits<QuestionComponentEmits<string>>()
+
+function update(event: Event) {
+  emit('answer', (event.target as HTMLInputElement).value)
+}
+</script>
+
+<template>
+  <label :for="inputId">{{ question.label }}</label>
+  <input
+    :id="inputId"
+    :name="question.id"
+    type="date"
+    :value="typeof value === 'string' ? value : ''"
+    :required="question.required"
+    :min="typeof question.props?.min === 'string' ? question.props.min : undefined"
+    :aria-describedby="describedBy"
+    :aria-invalid="error ? true : undefined"
+    @input="update"
+  />
+</template>
+```
+
+Register the component and, optionally, a pure validation function under the same type name:
+
+```ts
+import { defineQuestionComponents, type FormConfig, type QuestionValidators } from 'forml'
+
+import DateQuestion from './DateQuestion.vue'
+
+const questionComponents = defineQuestionComponents({ date: DateQuestion })
+const questionValidators = {
+  date: ({ value, question }) => {
+    if (value === '') return
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return 'Enter a valid date.'
+    const date = new Date(`${value}T00:00:00Z`)
+    if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== value) return 'Enter a valid date.'
+    const min = question.props?.min
+    if (typeof min === 'string' && value < min) return `Choose a date on or after ${min}.`
+  },
+} satisfies QuestionValidators
+
+const schema = {
+  steps: [
+    {
+      id: 'booking',
+      title: 'Booking',
+      questions: [
+        {
+          id: 'date',
+          type: 'date',
+          label: 'Date',
+          required: true,
+          props: { min: '2030-01-01' },
+        },
+      ],
+    },
+  ],
+} as const satisfies FormConfig<'date'>
+```
+
+```vue
+<Forml :schema="schema" :question-components="questionComponents" :question-validators="questionValidators" />
+```
+
+Forml stores emitted answers automatically. Custom answers can be any JSON-compatible value, including objects and arrays; `null` clears an answer. Configuration for the component and validator belongs in `question.props`. Custom type answers are inferred as `JsonValue`, so narrow them in a submission transform when needed.
+
+Validators receive `{ question, value, answers }` and return a field error string or `undefined`. Keep them synchronous and pure; effects belong in `changeEffects` or the submission pipeline. Required checks and built-in validation run first. Custom rules run on Continue for the current step and on Submit for all visible questions. They skip hidden questions and `null`/missing values. Rules can also add checks to built-in types. Back does not validate. Without a custom rule, custom types receive the standard required check.
+
+The same rules work without Vue:
+
+```ts
+validateAnswers(schema.steps, answers, questionValidators)
+reduceForm(schema, state, action, questionValidators)
+createSubmission({ schema, questionValidators, transform: (answers) => answers })
+```
+
+Pass the rules to each API you use; a schema-based submission does not inherit the renderer's rules. The demo registers `date` and `tel` in `demo/App.vue`, with rules in `demo/questionValidators.ts`. The **Custom question types** Storybook example shows custom props, inline errors, and submitted values.
+
 ## Run an Effect on answer changes
 
 Give a question an `effectOnChange` name in the form JSON. Register that name on the renderer with `:change-effects="changeEffects"`.

@@ -40,3 +40,4 @@ export { createSubmission } from './submission'
 export type { FormSubmission, SchemaSubmissionOptions, SubmissionOptions, SubmissionResult } from './submission'
 
 export { validateAnswers } from './validation'
+export type { QuestionValidationContext, QuestionValidator, QuestionValidators } from './validation'

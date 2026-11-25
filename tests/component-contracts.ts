@@ -1,5 +1,6 @@
 import type { Component } from 'vue'
 
+import RemovalsInput from '../demo/RemovalsInput.vue'
 import {
   AutocompleteQuestion,
   ChoiceQuestion,
@@ -13,6 +14,7 @@ import {
   type FormStepChangeEffect,
   type ProgressComponentProps,
   type QuestionComponentProps,
+  type QuestionValidators,
   type StepComponentProps,
   type StepComponentSlots,
 } from '../src'
@@ -40,6 +42,7 @@ declare const wrongStepIndex: Component &
 
 defineQuestionComponents({ [FormlType.Radio]: ChoiceQuestion })
 defineQuestionComponents({ [FormlType.Autocomplete]: AutocompleteQuestion })
+defineQuestionComponents({ date: RemovalsInput, tel: RemovalsInput })
 defineStepComponents({ DefaultStep })
 defineProgressComponent(Progress)
 
@@ -62,3 +65,12 @@ beforeStepChange({ type: FormlActionType.Back }, state)
 beforeStepChange({ type: FormlActionType.Answer, questionId: 'name', value: 'Ada' }, state)
 // @ts-expect-error Submit has its own pipeline and never reaches beforeStepChange.
 beforeStepChange({ type: FormlActionType.Submit }, state)
+
+const invalidValidators: QuestionValidators = {
+  // @ts-expect-error Validation rules must return synchronously.
+  async custom() {
+    return 'Invalid.'
+  },
+  // @ts-expect-error Return a message or undefined, not a boolean.
+  other: () => false,
+}

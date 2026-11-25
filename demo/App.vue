@@ -19,6 +19,7 @@ import {
   type QuestionChangeEffects,
 } from '../src'
 import { sameJson } from '../src/json'
+import { questionValidators } from './questionValidators'
 import { lookupPostcode, transformRemovalsRequest, type RemovalsPayload } from './removals'
 import removals from './removals.json'
 import RemovalsInput from './RemovalsInput.vue'
@@ -87,6 +88,7 @@ const submission = createSubmission({ transform: transformRemovalsRequest, send 
       v-model:state="session.state"
       :step-components="stepComponents"
       :question-components="questionComponents"
+      :question-validators="questionValidators"
       :progress-component="progressComponent"
       :before-step-change="beforeStepChange"
       :change-effects="changeEffects"

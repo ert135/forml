@@ -2,7 +2,7 @@ import { Effect } from 'effect'
 
 import { RequestSendError, RequestTransformError, type FormValidationError } from './errors'
 import type { AnswersFromSchema, FormAnswers, FormSchema } from './schema'
-import { validateAnswers } from './validation'
+import { validateAnswers, type QuestionValidators } from './validation'
 import { questionVisibility } from './visibility'
 
 export type SubmissionResult<Request, Response = never> =
@@ -13,12 +13,14 @@ type SynchronousRequest<Request> = Request & Exclude<Request, DeferredRequest>
 
 export interface SubmissionOptions<Request, Response = never> {
   schema?: never
+  questionValidators?: never
   transform: (answers: Readonly<FormAnswers>) => SynchronousRequest<Request>
   send?: (request: Request) => Effect.Effect<Response, unknown>
 }
 
 export interface SchemaSubmissionOptions<Definition extends FormSchema, Request, Response = never> {
   schema: Definition
+  questionValidators?: QuestionValidators
   transform: (answers: AnswersFromSchema<Definition>) => SynchronousRequest<Request>
   send?: (request: Request) => Effect.Effect<Response, unknown>
 }
@@ -76,7 +78,7 @@ export function createSubmission<const Definition extends FormSchema, Request, R
 
     const { schema, transform } = options
     const selected = answersForSchema(schema, answers)
-    return validateAnswers(schema.steps, selected).pipe(
+    return validateAnswers(schema.steps, answers, options.questionValidators).pipe(
       Effect.flatMap(() => transformRequest(() => transform(selected as AnswersFromSchema<Definition>))),
     )
   }
